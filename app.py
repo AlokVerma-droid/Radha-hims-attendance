@@ -1,4 +1,4 @@
-from flask import Flask, render_template, session, jsonify
+from flask import Flask, render_template, session, jsonify, redirect, url_for
 
 from asset_routes import asset_bp
 from master_routes import master_bp
@@ -6,6 +6,8 @@ from hr_routes import hr_bp  # <-- HR Blueprint Import
 
 
 app = Flask(__name__)
+
+
 
 # 🔐 Session Security Key (OTP Session Tracking Ke Liye Zaruri Hai)
 app.secret_key = 'radha_hims_secret_key_2026'
@@ -16,9 +18,15 @@ app.register_blueprint(master_bp, url_prefix='/api/masters')
 app.register_blueprint(hr_bp, url_prefix='/api/hr')  # <-- HR API Route Register
 
 
-# 1. Main Landing Portal
+# 1. Main Landing Portal (Ab yeh direct Login page open karega)
 @app.route('/')
 def home():
+    return render_template('login.html')
+
+
+# Optional Portal Route (Agar aapko purana index page dekhna ho)
+@app.route('/portal')
+def portal_home():
     return render_template('index.html')
 
 
@@ -124,7 +132,7 @@ def direct_manage_users_page():
 def direct_invite_staff_page():
     return render_template('invite-staff.html')
 
-    
+     
 @app.route('/hr/kiosk-login', methods=['GET'])
 def kiosk_login_page():
     return render_template('kiosk-login.html')
@@ -143,4 +151,3 @@ def face_attendance_page():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
-
