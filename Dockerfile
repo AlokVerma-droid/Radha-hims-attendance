@@ -1,6 +1,6 @@
 FROM python:3.9-slim
 
-# Install system dependencies for ODBC
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     curl \
     gnupg \
@@ -9,9 +9,9 @@ RUN apt-get update && apt-get install -y \
     unixodbc-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Add Microsoft repository and install ODBC Driver 17 for SQL Server
+# Add Microsoft GPG key and repository for Debian 11 / 10
 RUN curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /usr/share/keyrings/microsoft-prod.gpg \
-    && curl -fsSL https://packages.microsoft.com/config/debian/11/prod.list > /etc/apt/sources.list.d/mssql-release.list \
+    && curl -fsSL https://packages.microsoft.com/config/debian/11/prod.list | tee /etc/apt/sources.list.d/mssql-release.list \
     && apt-get update \
     && ACCEPT_EULA=Y apt-get install -y msodbcsql17
 
