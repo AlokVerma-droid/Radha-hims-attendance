@@ -1,0 +1,497 @@
+<!-- templates/sidebar.html -->
+<style>
+    /* 🎯 ULTRA-STRICT SELF-CONTAINED SIDEBAR */
+    .sidebar {
+        width: 240px !important;
+        background: #ffffff !important;
+        border-right: 1px solid #edf2f7 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+        height: 100vh !important;
+        flex-shrink: 0 !important;
+        transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        position: relative !important;
+        z-index: 1000 !important;
+        user-select: none !important;
+        overflow-x: hidden !important;
+        box-sizing: border-box !important;
+    }
+
+    /* 1. Header (Brand + Pin Button) */
+    .sb-header {
+        height: 60px !important;
+        padding: 0 14px !important;
+        border-bottom: 1px solid #edf2f7 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 10px !important;
+        position: relative !important;
+        flex-shrink: 0 !important;
+        box-sizing: border-box !important;
+    }
+
+    .sb-brand-area {
+        display: flex !important;
+        align-items: center !important;
+        gap: 12px !important;
+        cursor: pointer !important;
+        flex: 1 !important;
+        overflow: hidden !important;
+    }
+
+    .sb-avatar {
+        width: 36px !important;
+        height: 36px !important;
+        background: #2563eb !important;
+        color: #ffffff !important;
+        border-radius: 8px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-weight: 700 !important;
+        font-size: 0.95rem !important;
+        flex-shrink: 0 !important;
+    }
+
+    .sb-brand-text {
+        display: flex !important;
+        flex-direction: column !important;
+        overflow: hidden !important;
+        white-space: nowrap !important;
+    }
+
+    .sb-brand-title {
+        font-size: 0.95rem !important;
+        font-weight: 700 !important;
+        color: #0f172a !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+
+    .sb-brand-sub {
+        font-size: 0.7rem !important;
+        color: #64748b !important;
+        font-weight: 500 !important;
+    }
+
+    /* Pin / Unpin Button */
+    .sb-pin-btn {
+        width: 32px !important;
+        height: 32px !important;
+        background: #eff6ff !important;
+        border: 1px solid #bfdbfe !important;
+        border-radius: 6px !important;
+        color: #2563eb !important;
+        cursor: pointer !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-size: 0.85rem !important;
+        flex-shrink: 0 !important;
+        transition: all 0.15s ease !important;
+    }
+    .sb-pin-btn:hover {
+        background: #dbeafe !important;
+    }
+
+    /* 2. Menu Navigation */
+    .sidebar .nav-menu {
+        padding: 10px 0 !important;
+        list-style: none !important;
+        margin: 0 !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        flex: 1 !important;
+    }
+
+    .sidebar .nav-item {
+        margin: 3px 10px !important;
+        display: flex !important;
+    }
+
+    .sidebar .nav-link {
+        display: flex !important;
+        align-items: center !important;
+        gap: 12px !important;
+        padding: 10px 14px !important;
+        color: #64748b !important;
+        text-decoration: none !important;
+        font-size: 0.88rem !important;
+        font-weight: 600 !important;
+        border-radius: 8px !important;
+        width: 100% !important;
+        transition: background-color 0.15s ease, color 0.15s ease !important;
+        white-space: nowrap !important;
+        box-sizing: border-box !important;
+    }
+
+    .sidebar .nav-link i, 
+    .sidebar .nav-link svg {
+        font-size: 1.15rem !important;
+        min-width: 20px !important;
+        width: 20px !important;
+        text-align: center !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        flex-shrink: 0 !important;
+    }
+
+    .sidebar .nav-link:hover {
+        background-color: #f1f5f9 !important;
+        color: #0f172a !important;
+    }
+
+    .sidebar .nav-link.active {
+        background-color: #eff6ff !important;
+        color: #2563eb !important;
+    }
+
+    /* 3. Footer */
+    .sidebar-footer {
+        padding: 12px 16px !important;
+        font-size: 0.75rem !important;
+        color: #94a3b8 !important;
+        border-top: 1px solid #edf2f7 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 3px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        background: #ffffff !important;
+        flex-shrink: 0 !important;
+    }
+
+    /* ========================================================
+        🔓 AUTO-HOVER MODE (Sirf tab chalega jab body par class ho)
+        ======================================================== */
+    body.sb-auto-mode .sidebar {
+        width: 68px !important;
+    }
+
+    /* Hide text & brand name in auto-mini mode */
+    body.sb-auto-mode .sidebar .sb-brand-text,
+    body.sb-auto-mode .sidebar .sb-pin-btn,
+    body.sb-auto-mode .sidebar .nav-link span,
+    body.sb-auto-mode .sidebar .sidebar-footer {
+        display: none !important;
+    }
+
+    body.sb-auto-mode .sidebar .sb-header {
+        padding: 0 16px !important;
+        justify-content: center !important;
+    }
+
+    /* 🎯 FIX NEELI PATTI: Mini mode me active button lambi patti nahi banega */
+    body.sb-auto-mode .sidebar .nav-item {
+        margin: 4px 14px !important;
+        justify-content: center !important;
+    }
+    body.sb-auto-mode .sidebar .nav-link {
+        width: 40px !important;
+        height: 40px !important;
+        padding: 0 !important;
+        justify-content: center !important;
+        border-radius: 8px !important;
+    }
+
+    /* ========================================================
+        ✨ AUTO-EXPAND ON MOUSE HOVER (Jab Cursor Sidebar par jaye)
+        ======================================================== */
+    body.sb-auto-mode .sidebar:hover {
+        width: 240px !important;
+        box-shadow: 6px 0 24px rgba(0, 0, 0, 0.12) !important;
+    }
+
+    body.sb-auto-mode .sidebar:hover .sb-brand-text,
+    body.sb-auto-mode .sidebar:hover .sb-pin-btn,
+    body.sb-auto-mode .sidebar:hover .nav-link span,
+    body.sb-auto-mode .sidebar:hover .sidebar-footer {
+        display: flex !important;
+    }
+
+    body.sb-auto-mode .sidebar:hover .sb-header {
+        padding: 0 14px !important;
+        justify-content: space-between !important;
+    }
+
+    body.sb-auto-mode .sidebar:hover .nav-item {
+        margin: 3px 10px !important;
+        justify-content: flex-start !important;
+    }
+
+    body.sb-auto-mode .sidebar:hover .nav-link {
+        width: 100% !important;
+        height: auto !important;
+        padding: 10px 14px !important;
+        justify-content: flex-start !important;
+    }
+</style>
+
+<div class="sidebar" id="appSidebar">
+    <div>
+        <!-- Brand Header with Branch Switcher & Pin Trigger -->
+        <div class="sb-header">
+            <div class="sb-brand-area" onclick="toggleSidebarBranchDropdown(event)" title="Switch Active Branch">
+                <div class="sb-avatar" id="sidebarBranchIcon">N</div>
+                <div class="sb-brand-text">
+                    <span class="sb-brand-title" id="sidebarBranchName">Nirwana</span>
+                    <span class="sb-brand-sub">Active Branch</span>
+                </div>
+            </div>
+
+            <!-- 🎯 Pin/Unpin Mode Trigger Button -->
+            <button type="button" class="sb-pin-btn" id="btnSidebarPin" onclick="toggleSidebarUserMode()" title="Sidebar is Pinned (Fixed). Click to enable Auto-Hover">
+                <i class="fa-solid fa-thumbtack" id="sidebarPinIcon"></i>
+            </button>
+
+            <!-- Branch Dropdown -->
+            <div id="sidebarBranchDropdownList" style="display: none; position: absolute; top: 60px; left: 12px; width: 215px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); z-index: 9999; padding: 6px;"></div>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="/hr" class="nav-link" id="nav-dashboard">
+                    <i class="fa-solid fa-chart-pie"></i> <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/hr/add-staff" class="nav-link" id="nav-staff">
+                    <i class="fa-solid fa-users"></i> <span>Staff</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/hr/attendance-portal" class="nav-link" id="nav-attendance">
+                    <svg style="width: 20px; height: 20px; flex-shrink: 0;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="14" cy="5.5" r="2.75" fill="currentColor"/>
+                        <path d="M6 8.5C6 11.5 8 13.5 11 13.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <rect x="11" y="11" width="6" height="8" rx="2" fill="currentColor" fill-opacity="0.6"/>
+                        <path d="M17 12.5C18.5 13.5 19 15 19 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <span>Attendance</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/hr/roster" class="nav-link" id="nav-roster">
+                    <i class="fa-solid fa-calendar-days"></i> <span>Roster</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/hr/geo" class="nav-link" id="nav-geo">
+                    <i class="fa-solid fa-location-dot"></i> <span>Geo</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/hr/taskman" class="nav-link" id="nav-taskman">
+                    <i class="fa-solid fa-clipboard-check"></i> <span>Taskman</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/hr/reports" class="nav-link" id="nav-reports">
+                    <i class="fa-solid fa-chart-column"></i> <span>Reports</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/hr/payments" class="nav-link" id="nav-payments">
+                    <i class="fa-solid fa-credit-card"></i> <span>Payments</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/hr/payroll" class="nav-link" id="nav-payroll">
+                    <i class="fa-solid fa-hand-holding-dollar"></i> <span>Payroll</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/hr/others" class="nav-link" id="nav-others">
+                    <i class="fa-solid fa-cubes"></i> <span>Others</span>
+                </a>
+            </li>
+            <li class="nav-item" style="border-top: 1px solid #edf2f7; margin-top: 10px; padding-top: 10px;">
+                <a href="/hr/help" class="nav-link" id="nav-help">
+                    <i class="fa-solid fa-circle-question"></i> <span>Help</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/hr/settings" class="nav-link" id="nav-settings">
+                    <i class="fa-solid fa-gear"></i> <span>Settings</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/" class="nav-link" style="color: #ef4444;">
+                    <i class="fa-solid fa-right-from-bracket"></i> <span>Exit Portal</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+    
+    <!-- 🎯 0.0% HARDCODE FOOTER: Direct server session binding so it never freezes on "Loading..." -->
+    <div class="sidebar-footer">
+        <span style="font-weight: 700; color: #2563eb;"><i class="fa-solid fa-book-medical"></i> Radha HIMS</span>
+        <span id="sidebarBranchNameFooter" style="color: #475569;">Branch: <b>Main Branch</b></span>
+        <span id="sidebarLoggedUserFooter" style="color: #64748b; font-size: 0.72rem;">User: <b>{{ session.get('username') or session.get('user_name') or 'Admin' }}</b></span>
+    </div>
+</div>
+
+<script>
+    // 🎯 STRICT INITIALIZATION: Purane sabhi conflict classes remove karo
+    (function() {
+        document.body.classList.remove('sidebar-collapsed', 'sidebar-mini');
+        
+        const savedMode = localStorage.getItem('radha_sidebar_pinned_mode');
+        if (savedMode === 'auto') {
+            document.body.classList.add('sb-auto-mode');
+        } else {
+            document.body.classList.remove('sb-auto-mode');
+        }
+    })();
+
+    document.addEventListener('DOMContentLoaded', () => {
+        updatePinState();
+        highlightActiveSidebarMenu();
+        loadSidebarDynamicData();
+    });
+
+    // 🎯 Toggle Button Click Handler
+    function toggleSidebarUserMode() {
+        const isAuto = document.body.classList.toggle('sb-auto-mode');
+        localStorage.setItem('radha_sidebar_pinned_mode', isAuto ? 'auto' : 'pinned');
+        updatePinState();
+    }
+
+    function updatePinState() {
+        const btn = document.getElementById('btnSidebarPin');
+        const icon = document.getElementById('sidebarPinIcon');
+        if (!btn || !icon) return;
+
+        if (document.body.classList.contains('sb-auto-mode')) {
+            icon.className = 'fa-solid fa-angles-right';
+            btn.title = 'Click to PIN Sidebar (Always Fixed Full View)';
+            btn.style.background = '#f8fafc';
+            btn.style.color = '#64748b';
+            btn.style.borderColor = '#e2e8f0';
+        } else {
+            icon.className = 'fa-solid fa-thumbtack';
+            btn.title = 'Pinned (Fixed)! Click to enable Auto-Hover';
+            btn.style.background = '#eff6ff';
+            btn.style.color = '#2563eb';
+            btn.style.borderColor = '#bfdbfe';
+        }
+    }
+
+    function highlightActiveSidebarMenu() {
+        const currentPath = window.location.pathname;
+        document.querySelectorAll('.sidebar .nav-link').forEach(link => link.classList.remove('active'));
+
+        if (currentPath === '/hr' || currentPath === '/hr/') {
+            document.getElementById('nav-dashboard')?.classList.add('active');
+        } else if (currentPath.includes('/hr/add-staff')) {
+            document.getElementById('nav-staff')?.classList.add('active');
+        } else if (currentPath.includes('/hr/attendance-portal') || currentPath.includes('/hr/approve-punches')) {
+            document.getElementById('nav-attendance')?.classList.add('active');
+        } else if (currentPath.includes('/hr/roster')) {
+            document.getElementById('nav-roster')?.classList.add('active');
+        } else if (currentPath.includes('/hr/geo')) {
+            document.getElementById('nav-geo')?.classList.add('active');
+        } else if (currentPath.includes('/hr/taskman')) {
+            document.getElementById('nav-taskman')?.classList.add('active');
+        } else if (currentPath.includes('/hr/reports')) {
+            document.getElementById('nav-reports')?.classList.add('active');
+        } else if (currentPath.includes('/hr/payments')) {
+            document.getElementById('nav-payments')?.classList.add('active');
+        } else if (currentPath.includes('/hr/payroll')) {
+            document.getElementById('nav-payroll')?.classList.add('active');
+        } else if (currentPath.includes('/hr/others')) {
+            document.getElementById('nav-others')?.classList.add('active');
+        } else if (currentPath.includes('/hr/help')) {
+            document.getElementById('nav-help')?.classList.add('active');
+        } else if (currentPath.includes('/hr/settings')) {
+            document.getElementById('nav-settings')?.classList.add('active');
+        }
+    }
+
+    async function loadSidebarDynamicData() {
+        const HR_API = `${window.location.origin}/api/hr`;
+
+        // 1. Branch Data Fetch
+        try {
+            const res = await fetch(`${HR_API}/branches`, { credentials: 'same-origin' });
+            if (res.ok) {
+                const branchData = await res.json();
+                const branches = branchData.branches || [];
+
+                if (branches.length > 0) {
+                    let activeBranchId = localStorage.getItem('active_branch_id') || branches[0].id;
+                    let activeBranch = branches.find(b => String(b.id) === String(activeBranchId)) || branches[0];
+
+                    const topName = document.getElementById('sidebarBranchName');
+                    if (topName) topName.innerText = activeBranch.name;
+
+                    const footerBranch = document.getElementById('sidebarBranchNameFooter');
+                    if (footerBranch) footerBranch.innerHTML = `Branch: <b>${activeBranch.name}</b>`;
+
+                    const topIcon = document.getElementById('sidebarBranchIcon');
+                    if (topIcon) {
+                        const initials = activeBranch.name.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase() || 'N';
+                        topIcon.innerText = initials;
+                    }
+
+                    const dropdownList = document.getElementById('sidebarBranchDropdownList');
+                    if (dropdownList) {
+                        dropdownList.innerHTML = '';
+                        branches.forEach(b => {
+                            dropdownList.innerHTML += `
+                                <div onclick="switchSidebarBranch('${b.id}', '${b.name.replace(/'/g, "\\'")}')" style="padding: 10px 12px; font-size: 0.85rem; font-weight: 600; color: #334155; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: 0.15s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">
+                                    <span>${b.name}</span>
+                                    ${String(b.id) === String(activeBranch.id) ? '<i class="fa-solid fa-check" style="color: #2563eb;"></i>' : ''}
+                                </div>
+                            `;
+                        });
+                    }
+                }
+            }
+        } catch (e) {
+            console.error("Error loading branches in sidebar:", e);
+        }
+
+        // 2. Dynamic Logged-in User Fetch (Dual Path + credentials for complete reliability)
+        try {
+            let userRes = await fetch(`${HR_API}/current-user`, { credentials: 'same-origin' });
+            if (!userRes.ok) {
+                userRes = await fetch(`${window.location.origin}/hr/current-user`, { credentials: 'same-origin' });
+            }
+            
+            if (userRes.ok) {
+                const userData = await userRes.json();
+                const dbUserName = userData.name || userData.username || userData.user_name;
+
+                if (dbUserName) {
+                    const footerUser = document.getElementById('sidebarLoggedUserFooter');
+                    if (footerUser) footerUser.innerHTML = `User: <b>${dbUserName}</b>`;
+                }
+            }
+        } catch (err) {
+            console.error("Error fetching live user in sidebar:", err);
+        }
+    }
+
+    function toggleSidebarBranchDropdown(e) {
+        e.stopPropagation();
+        const dd = document.getElementById('sidebarBranchDropdownList');
+        if (dd) {
+            dd.style.display = dd.style.display === 'block' ? 'none' : 'block';
+        }
+    }
+
+    function switchSidebarBranch(branchId, branchName) {
+        localStorage.setItem('active_branch_id', branchId);
+        localStorage.setItem('active_branch_name', branchName);
+        window.location.reload();
+    }
+
+    window.addEventListener('click', () => {
+        const dd = document.getElementById('sidebarBranchDropdownList');
+        if (dd) dd.style.display = 'none';
+    });
+</script>

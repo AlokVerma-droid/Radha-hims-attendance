@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Payroll Generation - Radha HIMS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: #f8fafc; color: #1e293b; display: flex; height: 100vh; overflow: hidden; }
+
+        .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow-y: auto; height: 100vh; background: #f8fafc; min-width: 0; }
+        .top-header { height: 60px; background: #ffffff; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; flex-shrink: 0; }
+        .page-title-header { font-size: 1.25rem; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 10px; }
+        .user-name-tag { font-weight: 600; font-size: 0.9rem; color: #334155; }
+
+        .content-body { padding: 24px 32px; flex: 1; overflow-y: auto; max-width: 950px; margin: 0 auto; width: 100%; }
+        
+        .card-wrapper { background: #ffffff; padding: 30px 35px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02); margin-bottom: 24px; }
+        .section-title { font-size: 0.95rem; font-weight: 700; color: #1e293b; margin-bottom: 20px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 20px; margin-bottom: 20px; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group.full-width { grid-column: span 2; }
+        .form-group label { font-weight: 600; color: #475569; font-size: 0.82rem; }
+        .req-star { color: #dc2626; }
+        .form-group input, .form-group select, .form-group textarea { padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; outline: none; font-size: 0.9rem; background: #fff; color: #1e293b; transition: 0.15s; }
+        .form-group input:focus, .form-group select:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.08); }
+
+        .calculation-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px 20px; margin-bottom: 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .calc-item label { font-size: 0.75rem; color: #64748b; font-weight: 600; text-transform: uppercase; display: block; margin-bottom: 4px; }
+        .calc-item span { font-size: 1.1rem; font-weight: 700; color: #0f172a; }
+
+        .action-bar { display: flex; justify-content: flex-end; align-items: center; border-top: 1px solid #f1f5f9; padding-top: 18px; }
+        .btn-submit-payroll { background: #2563eb; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 8px; transition: 0.15s; }
+        .btn-submit-payroll:hover { background: #1d4ed8; }
+    </style>
+</head>
+<body>
+
+    {% include 'sidebar.html' %}
+
+    <div class="main-wrapper">
+        <div class="top-header">
+            <div class="page-title-header"><i class="fa-solid fa-calculator" style="color: #2563eb;"></i> Staff Payroll Generation</div>
+            <div class="user-name-tag">Logged in as: <span id="topUserName">Admin</span></div>
+        </div>
+
+        <div class="content-body">
+            <div class="card-wrapper">
+                <div class="section-title"><i class="fa-solid fa-file-invoice" style="color: #2563eb;"></i> Monthly Salary Calculation & Processing</div>
+
+                <form id="payrollForm" onsubmit="generatePayroll(event)">
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label>Select Staff Member <span class="req-star">*</span></label>
+                            <select id="payrollEmpSelect" required onchange="calculatePayrollSummary()">
+                                <option value="">-- Loading Staff Members --</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Payroll Period (Month/Year) <span class="req-star">*</span></label>
+                            <input type="text" id="payrollPeriod" value="September 2026" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Total Payable Days (Attendance) <span class="req-star">*</span></label>
+                            <input type="number" id="payableDays" value="30" step="0.5" required oninput="calculatePayrollSummary()">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Gross Base Salary (₹) <span class="req-star">*</span></label>
+                            <input type="number" id="grossSalary" step="0.01" placeholder="0.00" required oninput="calculatePayrollSummary()">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Overtime / Bonus Allowance (₹)</label>
+                            <input type="number" id="allowanceAmount" step="0.01" value="0.00" oninput="calculatePayrollSummary()">
+                        </div>
+
+                        <div class="form-group">
+                            <label>PF / ESI Deduction (₹)</label>
+                            <input type="number" id="deductionPF" step="0.01" value="0.00" oninput="calculatePayrollSummary()">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Loan / Advance Recovery (₹)</label>
+                            <input type="number" id="deductionLoan" step="0.01" value="0.00" oninput="calculatePayrollSummary()">
+                        </div>
+                    </div>
+
+                    <!-- Summary Calculation Box -->
+                    <div class="calculation-box">
+                        <div class="calc-item">
+                            <label>Gross Earnings</label>
+                            <span id="lblGross" style="color: #0284c7;">₹ 0.00</span>
+                        </div>
+                        <div class="calc-item">
+                            <label>Total Deductions</label>
+                            <span id="lblDeductions" style="color: #dc2626;">₹ 0.00</span>
+                        </div>
+                        <div class="calc-item">
+                            <label>Net Payable Salary</label>
+                            <span id="lblNetPay" style="color: #16a34a;">₹ 0.00</span>
+                        </div>
+                    </div>
+
+                    <div class="action-bar">
+                        <button type="submit" class="btn-submit-payroll"><i class="fa-solid fa-check"></i> Finalize & Generate Payroll</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api/hr';
+        let staffDirectory = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadPayrollStaffDropdown();
+        });
+
+        async function loadPayrollStaffDropdown() {
+            try {
+                const activeBranchId = localStorage.getItem('active_branch_id') || '';
+                const res = await fetch(`${API_BASE}/employees${activeBranchId ? '?branch_id=' + activeBranchId : ''}`);
+                const data = await res.json();
+                staffDirectory = data.employees || data.data || [];
+
+                const select = document.getElementById('payrollEmpSelect');
+                if (select) {
+                    select.innerHTML = '<option value="">-- Select Staff Member --</option>';
+                    staffDirectory.forEach(emp => {
+                        const code = emp.EmployeeCode || emp.emp_code || emp.id || '';
+                        const name = emp.FullName || emp.EmpName || emp.emp_name || 'Staff';
+                        const salary = emp.Salary || emp.salary || 0;
+                        select.innerHTML += `<option value="${code}" data-salary="${salary}">${name} (ID: ${code})</option>`;
+                    });
+                }
+            } catch (err) {
+                console.error("Error loading payroll staff:", err);
+            }
+        }
+
+        function calculatePayrollSummary() {
+            const select = document.getElementById('payrollEmpSelect');
+            const selectedOpt = select.options[select.selectedIndex];
+            const baseSalary = parseFloat(selectedOpt.getAttribute('data-salary')) || 0;
+            
+            if (document.getElementById('grossSalary').value === '' && baseSalary > 0) {
+                document.getElementById('grossSalary').value = baseSalary.toFixed(2);
+            }
+
+            const gross = parseFloat(document.getElementById('grossSalary').value) || 0;
+            const allowance = parseFloat(document.getElementById('allowanceAmount').value) || 0;
+            const pf = parseFloat(document.getElementById('deductionPF').value) || 0;
+            const loan = parseFloat(document.getElementById('deductionLoan').value) || 0;
+
+            const totalEarnings = gross + allowance;
+            const totalDeductions = pf + loan;
+            const netPay = Math.max(0, totalEarnings - totalDeductions);
+
+            document.getElementById('lblGross').innerText = `₹ ${totalEarnings.toFixed(2)}`;
+            document.getElementById('lblDeductions').innerText = `₹ ${totalDeductions.toFixed(2)}`;
+            document.getElementById('lblNetPay').innerText = `₹ ${netPay.toFixed(2)}`;
+        }
+
+        async function generatePayroll(e) {
+            e.preventDefault();
+            const empCode = document.getElementById('payrollEmpSelect').value;
+            const period = document.getElementById('payrollPeriod').value;
+            const netPayText = document.getElementById('lblNetPay').innerText.replace('₹', '').trim();
+
+            if (!empCode) {
+                alert("Please select a staff member!");
+                return;
+            }
+
+            // Redirect smoothly to the payment page with prefilled values
+            window.location.href = `/hr/payments?emp=${encodeURIComponent(empCode)}&amount=${encodeURIComponent(netPayText)}&period=${encodeURIComponent(period)}`;
+        }
+    </script>
+</body>
+</html>

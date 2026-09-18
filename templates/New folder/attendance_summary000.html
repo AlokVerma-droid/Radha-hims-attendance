@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Summary - Radha HIMS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', -apple-system, sans-serif; }
+        body { background-color: #f4f6f8; color: #2d3748; display: flex; height: 100vh; overflow: hidden; }
+
+        /* SIDEBAR HOVER */
+        .sidebar { 
+            position: fixed; top: 0; left: 0; height: 100vh; width: 65px; 
+            background: #ffffff; border-right: 1px solid #e2e8f0; 
+            display: flex; flex-direction: column; justify-content: space-between; 
+            flex-shrink: 0; transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            z-index: 999; overflow: hidden; box-shadow: 2px 0 8px rgba(0,0,0,0.03);
+        }
+        .sidebar:hover { width: 240px; box-shadow: 6px 0 20px rgba(0,0,0,0.12); }
+        .sidebar-brand { height: 60px; padding: 0 18px; font-size: 1.1rem; font-weight: bold; color: #1a365d; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid #f0f4f8; }
+        .sidebar-brand i { font-size: 1.3rem; min-width: 28px; text-align: center; }
+        .nav-menu { list-style: none; padding: 15px 8px; overflow-y: auto; overflow-x: hidden; flex: 1; }
+        .nav-item { margin-bottom: 4px; }
+        .nav-link { display: flex; align-items: center; gap: 15px; padding: 11px 12px; text-decoration: none; color: #4a5568; font-size: 0.9rem; font-weight: 500; border-radius: 8px; transition: all 0.2s ease; cursor: pointer; }
+        .nav-link:hover, .nav-link.active { background-color: #ebf8ff; color: #2b6cb0; font-weight: 600; }
+        .nav-link i { font-size: 1.15rem; min-width: 26px; text-align: center; }
+        .sidebar span { opacity: 0; white-space: nowrap; transition: opacity 0.2s ease; }
+        .sidebar:hover span { opacity: 1; }
+
+        /* MAIN CONTENT AREA */
+        .main-wrapper { flex: 1; margin-left: 65px; display: flex; flex-direction: column; overflow-y: auto; height: 100vh; background-color: #f8fafc; }
+        .page-header { background: #ffffff; padding: 16px 28px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+        .header-title { font-size: 1.4rem; font-weight: 700; color: #1a202c; }
+
+        .content-area { padding: 25px 28px; }
+
+        /* SUMMARY METRICS CARD */
+        .summary-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 22px; margin-bottom: 22px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .date-navigator { display: flex; align-items: center; justify-content: space-between; padding-bottom: 18px; border-bottom: 1px solid #edf2f7; }
+        .date-picker-box { position: relative; display: flex; align-items: center; gap: 12px; font-size: 1.1rem; font-weight: 700; color: #1a202c; }
+        .date-nav-btn { background: #f7fafc; border: 1px solid #cbd5e0; border-radius: 6px; padding: 6px 12px; cursor: pointer; color: #4a5568; transition: 0.2s; }
+        .date-nav-btn:hover { background: #edf2f7; color: #2b6cb0; }
+
+        /* CALENDAR TRIGGER FIX */
+        .cal-trigger-btn { background: none; border: none; cursor: pointer; color: #3182ce; font-size: 1.15rem; display: inline-flex; align-items: center; justify-content: center; padding: 4px; border-radius: 4px; transition: 0.2s; }
+        .cal-trigger-btn:hover { background: #ebf8ff; }
+
+        .review-status { display: flex; align-items: center; gap: 15px; }
+        .status-dot-text { font-size: 0.88rem; font-weight: 600; color: #e53e3e; display: flex; align-items: center; gap: 6px; }
+        .btn-review { background: #3182ce; color: white; padding: 8px 20px; border-radius: 6px; border: none; font-weight: bold; font-size: 0.88rem; cursor: pointer; text-decoration: none; }
+
+        .metrics-row { display: grid; grid-template-columns: repeat(4, 1fr); padding-top: 18px; }
+        .m-item label { font-size: 0.8rem; font-weight: 600; color: #718096; display: block; margin-bottom: 6px; text-transform: uppercase; }
+        .m-item span { font-size: 1.3rem; font-weight: bold; color: #1a202c; }
+
+        /* SEARCH BAR */
+        .search-box { position: relative; margin-bottom: 20px; }
+        .search-box input { width: 100%; padding: 12px 16px 12px 42px; border: 1px solid #cbd5e0; border-radius: 8px; font-size: 0.92rem; outline: none; background: #ffffff; }
+        .search-box i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #a0aec0; font-size: 1.05rem; }
+
+        /* STAFF ATTENDANCE CARDS */
+        .staff-section-title { font-size: 0.88rem; font-weight: 700; color: #718096; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .count-pill { background: #e2e8f0; color: #4a5568; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; }
+
+        .staff-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px 22px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .staff-info { width: 35%; }
+        .staff-name { font-size: 1.05rem; font-weight: 700; color: #1a202c; margin-bottom: 4px; }
+        .staff-sub { font-size: 0.85rem; color: #718096; }
+
+        .action-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: 55%; }
+        .att-btn { border: 1px solid #cbd5e0; background: #ffffff; border-radius: 6px; padding: 10px 14px; font-size: 0.85rem; font-weight: 600; color: #4a5568; cursor: pointer; text-align: center; transition: 0.15s; }
+        .att-btn:hover { border-color: #a0aec0; background: #f7fafc; }
+        
+        /* DYNAMIC BUTTON HIGHLIGHT COLORS */
+        .att-btn.active-p { background: #c6f6d5 !important; border-color: #38a169 !important; color: #22543d !important; font-weight: 700; }
+        .att-btn.active-hd { background: #feebc8 !important; border-color: #d69e2e !important; color: #744210 !important; font-weight: 700; }
+        .att-btn.active-a { background: #fed7d7 !important; border-color: #e53e3e !important; color: #742a2a !important; font-weight: 700; }
+        .att-btn.active-l { background: #e0e7ff !important; border-color: #818cf8 !important; color: #3730a3 !important; font-weight: 700; box-shadow: 0 0 0 1px #818cf8; }
+
+        /* ATTENDANCE MODAL STYLING */
+        .modal-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.4); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-card { background: white; border-radius: 12px; padding: 25px; width: 100%; max-width: 420px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #edf2f7; padding-bottom: 12px; margin-bottom: 20px; }
+        .modal-title { font-size: 1.1rem; font-weight: 700; color: #1a202c; }
+        .close-modal { font-size: 1.2rem; color: #a0aec0; cursor: pointer; border: none; background: none; }
+        .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .modal-group { display: flex; flex-direction: column; gap: 6px; }
+        .modal-group label { font-size: 0.85rem; font-weight: 600; color: #4a5568; }
+        .modal-group input { padding: 9px 12px; border: 1px solid #cbd5e0; border-radius: 6px; outline: none; font-size: 0.95rem; }
+        .btn-save-att { width: 100%; background: #3182ce; color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.95rem; }
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div>
+            <div class="sidebar-brand">
+                <i class="fa-solid fa-hospital-user" style="color: #3182ce;"></i>
+                <span>Radha HIMS</span>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item"><a href="/hr" class="nav-link"><i class="fa-solid fa-chart-pie"></i> <span>Dashboard</span></a></li>
+                <li class="nav-item"><a href="/hr/add-staff" class="nav-link"><i class="fa-solid fa-users"></i> <span>Staff</span></a></li>
+                <li class="nav-item"><a href="/hr/attendance-portal" class="nav-link active"><i class="fa-solid fa-user-check"></i> <span>Attendance</span></a></li>
+                <li class="nav-item"><a href="/hr/roster" class="nav-link"><i class="fa-solid fa-calendar-days"></i> <span>Roster</span></a></li>
+                <li class="nav-item"><a href="/hr/geo" class="nav-link"><i class="fa-solid fa-location-dot"></i> <span>Geo</span></a></li>
+                <li class="nav-item"><a href="/hr/taskman" class="nav-link"><i class="fa-solid fa-clipboard-check"></i> <span>Taskman</span></a></li>
+                <li class="nav-item"><a href="/hr/reports" class="nav-link"><i class="fa-solid fa-chart-column"></i> <span>Reports</span></a></li>
+                <li class="nav-item"><a href="/hr/payments" class="nav-link"><i class="fa-solid fa-credit-card"></i> <span>Payments</span></a></li>
+                <li class="nav-item"><a href="/hr/payroll" class="nav-link"><i class="fa-solid fa-hand-holding-dollar"></i> <span>Payroll</span></a></li>
+                <li class="nav-item"><a href="/hr/others" class="nav-link"><i class="fa-solid fa-cubes"></i> <span>Others</span></a></li>
+                <li class="nav-item" style="border-top: 1px solid #edf2f7; margin-top: 10px; padding-top: 10px;"><a href="/hr/help" class="nav-link"><i class="fa-solid fa-circle-question"></i> <span>Help</span></a></li>
+                <li class="nav-item"><a href="/hr/settings" class="nav-link"><i class="fa-solid fa-gear"></i> <span>Settings</span></a></li>
+                <li class="nav-item"><a href="/" class="nav-link" style="color: #e53e3e;"><i class="fa-solid fa-right-from-bracket"></i> <span>Exit Portal</span></a></li>
+            </ul>
+        </div>
+        <div style="padding: 15px; font-size: 0.75rem; color: #a0aec0; border-top: 1px solid #edf2f7;">
+            <span>Radha HIMS v2.0</span>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-wrapper">
+        <div class="page-header">
+            <span class="header-title">Attendance Summary</span>
+        </div>
+
+        <div class="content-area">
+            <div class="summary-card">
+                <div class="date-navigator">
+                    <div class="date-picker-box">
+                        <button class="date-nav-btn" onclick="navigateDate(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+                        <span id="currentDisplayDate">Loading...</span>
+                        <button class="date-nav-btn" onclick="navigateDate(1)"><i class="fa-solid fa-chevron-right"></i></button>
+
+                        <!-- 🚀 PROPERLY TRIGGERED NATIVE DATE PICKER -->
+                        <button class="cal-trigger-btn" onclick="openDatePicker()" title="Select Date">
+                            <i class="fa-regular fa-calendar-days"></i>
+                        </button>
+                        <input type="date" id="nativeDatePicker" style="position: absolute; opacity: 0; width:0; height:0; pointer-events: none;" onchange="selectPickerDate(this.value)">
+                    </div>
+
+                    <div class="review-status">
+                        <span class="status-dot-text"><i class="fa-solid fa-circle" style="font-size: 0.6rem;"></i> Total Pending for Approval : <strong id="summaryPendingCount">0</strong></span>
+                        <a href="/hr/approve-punches" class="btn-review">Review</a>
+                    </div>
+                </div>
+
+                <div class="metrics-row">
+                    <div class="m-item"><label>Total Staff</label><span id="mTotalStaff">0</span></div>
+                    <div class="m-item"><label>Present</label><span id="mPresent" style="color: #38a169;">0</span></div>
+                    <div class="m-item"><label>Absent</label><span id="mAbsent" style="color: #e53e3e;">0</span></div>
+                    <div class="m-item"><label>Half Day</label><span id="mHalfDay" style="color: #d69e2e;">0</span></div>
+                </div>
+            </div>
+
+            <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="attSearchInput" onkeyup="filterAttendanceList()" placeholder="Search staff by name or code...">
+            </div>
+
+            <div class="staff-section-title">
+                MONTHLY REGULAR <span class="count-pill" id="monthlyStaffCount">0</span>
+            </div>
+
+            <div id="staffCardsContainer">
+                <div style="text-align: center; padding: 30px; color: #a0aec0;">Loading attendance records...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ATTENDANCE TIME ENTRY MODAL (ONLY FOR PRESENT) -->
+    <div class="modal-overlay" id="timeModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title" id="modalStaffName">Mark Attendance</div>
+                <button class="close-modal" onclick="closeModal()">&times;</button>
+            </div>
+            
+            <form id="attendanceTimeForm">
+                <input type="hidden" id="modalEmpId">
+                <input type="hidden" id="modalStatus">
+
+                <div class="modal-grid">
+                    <div class="modal-group">
+                        <label>In Time *</label>
+                        <input type="time" id="modalInTime" required>
+                    </div>
+                    <div class="modal-group">
+                        <label>Out Time</label>
+                        <input type="time" id="modalOutTime">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-save-att"><i class="fa-solid fa-check"></i> Save Attendance to DB</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT & BACKEND DB SYNC -->
+    <script>
+        const API_BASE = `${window.location.origin}/api/hr`;
+        let attendanceState = {};
+        let currentDate = new Date();
+
+        // 1. Dynamic Date Display & Calendar Opener
+        function updateDateDisplay() {
+            const options = { day: '2-digit', month: 'short', year: 'numeric', weekday: 'short' };
+            const formattedDisplay = currentDate.toLocaleDateString('en-GB', options).replace(',', ' |');
+            document.getElementById('currentDisplayDate').innerText = formattedDisplay;
+            
+            loadAttendanceSummary();
+        }
+
+        function navigateDate(days) {
+            currentDate.setDate(currentDate.getDate() + days);
+            updateDateDisplay();
+        }
+
+        function openDatePicker() {
+            const dateInput = document.getElementById('nativeDatePicker');
+            dateInput.value = currentDate.toISOString().split('T')[0];
+            
+            // Modern Browser Trigger Method
+            if (typeof dateInput.showPicker === 'function') {
+                dateInput.showPicker();
+            } else {
+                dateInput.click();
+            }
+        }
+
+        function selectPickerDate(val) {
+            if (val) {
+                currentDate = new Date(val);
+                updateDateDisplay();
+            }
+        }
+
+        // 2. Load Staff Members & Attendance
+        async function loadAttendanceSummary() {
+            try {
+                const dateStr = currentDate.toISOString().split('T')[0];
+                const res = await fetch(`${API_BASE}/employees?date=${dateStr}`);
+                const data = await res.json();
+                const container = document.getElementById('staffCardsContainer');
+
+                if (!container) return;
+                container.innerHTML = '';
+
+                const empList = data.employees || data.data || (Array.isArray(data) ? data : []);
+
+                if (empList && empList.length > 0) {
+                    const totalCount = empList.length;
+                    document.getElementById('mTotalStaff').innerText = totalCount;
+                    document.getElementById('monthlyStaffCount').innerText = totalCount;
+
+                    let pendingCount = 0;
+
+                    empList.forEach(emp => {
+                        const empKey = emp.id || emp.emp_code;
+                        const currentStatus = emp.status || 'UNMARKED'; 
+                        attendanceState[empKey] = currentStatus;
+
+                        if (emp.approval_pending) pendingCount++;
+
+                        container.innerHTML += `
+                            <div class="staff-card" data-name="${(emp.emp_name || '').toLowerCase()}" data-code="${(emp.emp_code || '').toLowerCase()}">
+                                <div class="staff-info">
+                                    <div class="staff-name">${emp.emp_name}</div>
+                                    <div class="staff-sub">Code: ${emp.emp_code} &nbsp;|&nbsp; Shift: ${emp.shift || '09:00 AM - 05:00 PM'}</div>
+                                </div>
+
+                                <div class="action-grid" id="grid-${empKey}">
+                                    <button class="att-btn ${currentStatus === 'PRESENT' ? 'active-p' : ''}" onclick="handleStatusClick('${empKey}', '${emp.emp_name.replace(/'/g, "\\'")}', 'PRESENT')">Present</button>
+                                    <button class="att-btn ${currentStatus === 'HALF_DAY' ? 'active-hd' : ''}" onclick="directSaveDB('${empKey}', 'HALF_DAY')">Half Day</button>
+                                    <button class="att-btn ${currentStatus === 'ABSENT' ? 'active-a' : ''}" onclick="directSaveDB('${empKey}', 'ABSENT')">Absent</button>
+                                    <button class="att-btn ${currentStatus === 'LEAVE' ? 'active-l' : ''}" onclick="directSaveDB('${empKey}', 'LEAVE')">Leave</button>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    document.getElementById('summaryPendingCount').innerText = pendingCount;
+                    updateCalculatedMetrics();
+                } else {
+                    container.innerHTML = `<div style="text-align: center; padding: 20px;">No staff records found in database.</div>`;
+                    document.getElementById('mTotalStaff').innerText = '0';
+                    document.getElementById('monthlyStaffCount').innerText = '0';
+                    document.getElementById('summaryPendingCount').innerText = '0';
+                    updateCalculatedMetrics();
+                }
+            } catch (err) {
+                console.error("Attendance Summary Load Error:", err);
+            }
+        }
+
+        // 3. Present Modal Handler
+        function handleStatusClick(empId, empName, status) {
+            document.getElementById('modalEmpId').value = empId;
+            document.getElementById('modalStatus').value = status;
+            document.getElementById('modalStaffName').innerText = `Present: ${empName}`;
+            
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('modalInTime').value = `${hours}:${minutes}`;
+            document.getElementById('modalOutTime').value = '';
+
+            document.getElementById('timeModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('timeModal').style.display = 'none';
+        }
+
+        // 4. Submit Modal
+        document.getElementById('attendanceTimeForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const empId = document.getElementById('modalEmpId').value;
+            const status = document.getElementById('modalStatus').value;
+            const inTime = document.getElementById('modalInTime').value;
+            const outTime = document.getElementById('modalOutTime').value;
+
+            await postAttendanceToDB(empId, status, inTime, outTime);
+            closeModal();
+        });
+
+        // 5. Direct Save DB
+        async function directSaveDB(empId, status) {
+            await postAttendanceToDB(empId, status, null, null);
+        }
+
+        // 6. DB Sync
+        async function postAttendanceToDB(empId, status, inTime, outTime) {
+            try {
+                const payload = {
+                    emp_id: empId,
+                    status: status,
+                    in_time: inTime,
+                    out_time: outTime,
+                    date: currentDate.toISOString().split('T')[0]
+                };
+
+                const res = await fetch(`${API_BASE}/mark-attendance`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await res.json();
+
+                if (res.ok && result.success) {
+                    attendanceState[empId] = status;
+                    updateGridUI(empId, status);
+                    updateCalculatedMetrics();
+                } else {
+                    alert(`Error: ${result.error || 'Could not mark attendance.'}`);
+                }
+            } catch (err) {
+                alert("Network Error: Could not reach backend server.");
+            }
+        }
+
+        function updateGridUI(empId, status) {
+            const grid = document.getElementById(`grid-${empId}`);
+            if (!grid) return;
+
+            const buttons = grid.querySelectorAll('.att-btn');
+            buttons.forEach(b => b.classList.remove('active-p', 'active-hd', 'active-a', 'active-l'));
+
+            if (status === 'PRESENT') buttons[0].classList.add('active-p');
+            if (status === 'HALF_DAY') buttons[1].classList.add('active-hd');
+            if (status === 'ABSENT') buttons[2].classList.add('active-a');
+            if (status === 'LEAVE') buttons[3].classList.add('active-l');
+        }
+
+        function updateCalculatedMetrics() {
+            let present = 0, absent = 0, halfday = 0;
+            Object.values(attendanceState).forEach(st => {
+                if (st === 'PRESENT') present++;
+                if (st === 'ABSENT') absent++;
+                if (st === 'HALF_DAY') halfday++;
+            });
+            document.getElementById('mPresent').innerText = present;
+            document.getElementById('mAbsent').innerText = absent;
+            document.getElementById('mHalfDay').innerText = halfday;
+        }
+
+        function filterAttendanceList() {
+            const query = document.getElementById('attSearchInput').value.toLowerCase().trim();
+            const cards = document.querySelectorAll('.staff-card');
+            cards.forEach(card => {
+                const name = card.getAttribute('data-name') || '';
+                const code = card.getAttribute('data-code') || '';
+                card.style.display = (name.includes(query) || code.includes(query)) ? 'flex' : 'none';
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateDateDisplay();
+        });
+    </script>
+</body>
+</html>

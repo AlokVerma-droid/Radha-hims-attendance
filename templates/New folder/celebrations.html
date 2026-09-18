@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Celebrations - Radha HIMS</title>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', -apple-system, sans-serif; }
+        body { background-color: #f4f6f8; color: #2d3748; display: flex; height: 100vh; overflow: hidden; }
+
+        /* Main Content Wrapper (Flex Layout: Automatically adapts with 240px and 68px sidebar) */
+        .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow-y: auto; height: 100vh; min-width: 0; }
+        .top-header { height: 60px; background: #ffffff; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; padding: 0 25px; flex-shrink: 0; }
+        .content-area { padding: 25px; flex: 1; }
+
+        .back-link { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; color: #3182ce; font-weight: 600; margin-bottom: 15px; font-size: 0.9rem; }
+        .page-title { font-size: 1.4rem; font-weight: 700; color: #1a202c; margin-bottom: 20px; }
+
+        /* Main Celebrations Card Container */
+        .celebrations-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; display: flex; min-height: 520px; overflow: hidden; }
+        
+        /* Left Tabs Area */
+        .tab-sidebar { width: 200px; border-right: 1px solid #edf2f7; padding: 20px 15px; background: #fafbfc; }
+        .tab-btn { display: block; width: 100%; text-align: left; padding: 12px 16px; border: none; background: transparent; border-radius: 20px; font-size: 0.9rem; font-weight: 600; color: #4a5568; cursor: pointer; margin-bottom: 8px; transition: 0.2s; }
+        .tab-btn.active { background: #ebf8ff; color: #3182ce; }
+
+        /* Right Content Area */
+        .tab-content { flex: 1; padding: 25px 30px; position: relative; }
+        .tab-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .tab-title { font-size: 1.15rem; font-weight: 700; color: #1a202c; margin-bottom: 4px; }
+        .tab-subtitle { font-size: 0.88rem; color: #718096; }
+
+        .date-range-badge { background: #f8fafc; border: 1px solid #cbd5e0; padding: 8px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; color: #2d3748; display: flex; align-items: center; gap: 8px; }
+
+        /* Empty State Graphic Container */
+        .empty-state-box { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px 20px; text-align: center; }
+        .empty-icon-card { width: 70px; height: 60px; background: #e6fffa; border: 2px dashed #319795; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: #319795; margin-bottom: 15px; }
+
+        /* Results Grid */
+        .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 15px; }
+        .person-card { background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; display: flex; align-items: center; gap: 12px; }
+        .person-avatar { width: 45px; height: 45px; border-radius: 50%; background: #feebc8; color: #d69e2e; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <!-- 🚀 CENTRALIZED SIDEBAR VIA JINJA2 INCLUDE -->
+    {% include 'sidebar.html' %}
+
+    <!-- 2. Main Content Wrapper -->
+    <div class="main-wrapper">
+        <div class="top-header">
+            <span style="font-weight: 600; color: #2d3748;">System Admin</span>
+            <div style="width: 38px; height: 38px; border-radius: 50%; background: #3182ce; color: white; font-weight: bold; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;">SA</div>
+        </div>
+
+        <div class="content-area">
+            <a href="/hr" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back</a>
+            <h1 class="page-title">Celebrations</h1>
+
+            <div class="celebrations-card">
+                <!-- Left Sub Tabs -->
+                <div class="tab-sidebar">
+                    <button class="tab-btn active" id="tabBirthdays" onclick="switchTab('birthdays')">Birthdays</button>
+                    <button class="tab-btn" id="tabAnniversaries" onclick="switchTab('anniversaries')">Work Anniversaries</button>
+                </div>
+
+                <!-- Right Content Container -->
+                <div class="tab-content">
+                    <div class="tab-header-row">
+                        <div>
+                            <h2 class="tab-title" id="contentTitle">Birthdays</h2>
+                            <p class="tab-subtitle" id="contentSubtitle">Stay updated about the upcoming employee's birthdays and make their day special</p>
+                        </div>
+
+                        <div class="date-range-badge">
+                            <span id="dateRangeText">03 Aug 2026 - 10 Aug 2026</span>
+                            <i class="fa-solid fa-calendar-days" style="color: #718096;"></i>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Display Area -->
+                    <div id="celebrationsDataBox">
+                        <div class="empty-state-box">
+                            <div class="empty-icon-card"><i class="fa-solid fa-box-open"></i></div>
+                            <p style="color: #718096; font-size: 0.9rem; font-weight: 500;">Loading database records...</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Live SSMS Fetching Script -->
+    <script>
+        const HR_API = `${window.location.origin}/api/hr`;
+        let currentTab = 'birthdays';
+
+        function switchTab(type) {
+            currentTab = type;
+            document.getElementById('tabBirthdays').classList.toggle('active', type === 'birthdays');
+            document.getElementById('tabAnniversaries').classList.toggle('active', type === 'anniversaries');
+
+            if (type === 'birthdays') {
+                document.getElementById('contentTitle').innerText = 'Birthdays';
+                document.getElementById('contentSubtitle').innerText = "Stay updated about the upcoming employee's birthdays and make their day special";
+            } else {
+                document.getElementById('contentTitle').innerText = 'Work Anniversaries';
+                document.getElementById('contentSubtitle').innerText = 'Celebrate employee milestones and work anniversaries';
+            }
+
+            loadCelebrationsData();
+        }
+
+        async function loadCelebrationsData() {
+            const dataBox = document.getElementById('celebrationsDataBox');
+            dataBox.innerHTML = `
+                <div class="empty-state-box">
+                    <p style="color: #718096; font-size: 0.9rem;">Checking SSMS Database...</p>
+                </div>
+            `;
+
+            try {
+                const res = await fetch(`${HR_API}/celebrations?type=${currentTab}`);
+                const result = await res.json();
+
+                if (result.data && result.data.length > 0) {
+                    let html = '<div class="results-grid">';
+                    result.data.forEach(item => {
+                        html += `
+                            <div class="person-card">
+                                <div class="person-avatar">
+                                    <i class="fa-solid ${currentTab === 'birthdays' ? 'fa-cake-candles' : 'fa-award'}"></i>
+                                </div>
+                                <div>
+                                    <strong style="display: block; font-size: 0.95rem;">${item.name}</strong>
+                                    <small style="color: #718096;">Code: ${item.code} | Date: ${item.date}</small><br>
+                                    <span style="color: #38a169; font-size: 0.8rem; font-weight: bold;">${item.event}</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                    dataBox.innerHTML = html;
+                } else {
+                    dataBox.innerHTML = `
+                        <div class="empty-state-box">
+                            <div class="empty-icon-card">
+                                <i class="fa-solid fa-question"></i>
+                            </div>
+                            <p style="color: #a0aec0; font-size: 0.9rem; font-weight: 500;">No data found</p>
+                        </div>
+                    `;
+                }
+            } catch (err) {
+                console.error(err);
+                dataBox.innerHTML = `
+                    <div class="empty-state-box">
+                        <p style="color: #e53e3e; font-size: 0.9rem;">Error connecting to database.</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Auto Load on Page Ready
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCelebrationsData();
+        });
+    </script>
+</body>
+</html>

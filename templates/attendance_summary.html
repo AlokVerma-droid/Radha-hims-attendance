@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Summary - Radha HIMS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', -apple-system, sans-serif; }
+        body { background-color: #f4f6f8; color: #2d3748; display: flex; height: 100vh; overflow: hidden; }
+
+        /* MAIN CONTENT AREA */
+        .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow-y: auto; height: 100vh; background-color: #f8fafc; }
+        .page-header { background: #ffffff; padding: 16px 28px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+        .header-title { font-size: 1.4rem; font-weight: 700; color: #1a202c; }
+
+        .content-area { padding: 25px 28px; }
+
+        /* SUMMARY METRICS CARD */
+        .summary-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 22px; margin-bottom: 22px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .date-navigator { display: flex; align-items: center; justify-content: space-between; padding-bottom: 18px; border-bottom: 1px solid #edf2f7; }
+        .date-picker-box { position: relative; display: flex; align-items: center; gap: 12px; font-size: 1.1rem; font-weight: 700; color: #1a202c; }
+        .date-nav-btn { background: #f7fafc; border: 1px solid #cbd5e0; border-radius: 6px; padding: 6px 12px; cursor: pointer; color: #4a5568; transition: 0.2s; }
+        .date-nav-btn:hover { background: #edf2f7; color: #2b6cb0; }
+
+        .cal-trigger-btn { background: none; border: none; cursor: pointer; color: #3182ce; font-size: 1.15rem; display: inline-flex; align-items: center; justify-content: center; padding: 4px; border-radius: 4px; transition: 0.2s; }
+        .cal-trigger-btn:hover { background: #ebf8ff; }
+
+        .review-status { display: flex; align-items: center; gap: 15px; }
+        .status-dot-text { font-size: 0.88rem; font-weight: 600; color: #718096; display: flex; align-items: center; gap: 6px; }
+        .status-dot-text.has-pending { color: #e53e3e; }
+        .btn-review { background: #3182ce; color: white; padding: 8px 20px; border-radius: 6px; border: none; font-weight: bold; font-size: 0.88rem; cursor: pointer; text-decoration: none; }
+
+        .metrics-row { display: grid; grid-template-columns: repeat(6, 1fr); padding-top: 18px; }
+        .m-item label { font-size: 0.8rem; font-weight: 600; color: #718096; display: block; margin-bottom: 6px; text-transform: uppercase; }
+        .m-item span { font-size: 1.3rem; font-weight: bold; color: #1a202c; }
+
+        .search-box { position: relative; margin-bottom: 20px; }
+        .search-box input { width: 100%; padding: 12px 16px 12px 42px; border: 1px solid #cbd5e0; border-radius: 8px; font-size: 0.92rem; outline: none; background: #ffffff; }
+        .search-box i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #a0aec0; font-size: 1.05rem; }
+
+        .staff-section-title { font-size: 0.88rem; font-weight: 700; color: #718096; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .count-pill { background: #e2e8f0; color: #4a5568; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; }
+
+        .staff-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px 22px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .staff-info { width: 35%; }
+        .staff-name { font-size: 1.05rem; font-weight: 700; color: #1a202c; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+        .staff-sub { font-size: 0.85rem; color: #718096; margin-top: 4px; }
+        .staff-log-link { font-size: 0.78rem; color: #059669; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; }
+        .staff-log-link:hover { text-decoration: underline; }
+
+        .action-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; width: 62%; }
+        .att-btn { border: 1px solid #cbd5e0; background: #ffffff; border-radius: 6px; padding: 10px 10px; font-size: 0.8rem; font-weight: 600; color: #4a5568; cursor: pointer; text-align: center; transition: 0.15s; }
+        .att-btn:hover { border-color: #a0aec0; background: #f7fafc; }
+
+        .att-btn.active-p { background: #c6f6d5 !important; border-color: #38a169 !important; color: #22543d !important; font-weight: 700; }
+        .att-btn.active-hd { background: #feebc8 !important; border-color: #d69e2e !important; color: #744210 !important; font-weight: 700; }
+        .att-btn.active-a { background: #fed7d7 !important; border-color: #e53e3e !important; color: #742a2a !important; font-weight: 700; }
+        .att-btn.active-l { background: #e0e7ff !important; border-color: #818cf8 !important; color: #3730a3 !important; font-weight: 700; box-shadow: 0 0 0 1px #818cf8; }
+        .att-btn.active-ul { background: #fee2e2 !important; border-color: #dc2626 !important; color: #991b1b !important; font-weight: 700; }
+
+        /* MODALS */
+        .modal-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.4); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-card { background: white; border-radius: 12px; padding: 25px; width: 100%; max-width: 420px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #edf2f7; padding-bottom: 12px; margin-bottom: 20px; }
+        .modal-title { font-size: 1.1rem; font-weight: 700; color: #1a202c; }
+        .close-modal { font-size: 1.2rem; color: #a0aec0; cursor: pointer; border: none; background: none; }
+        .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .modal-group { display: flex; flex-direction: column; gap: 6px; }
+        .modal-group label { font-size: 0.85rem; font-weight: 600; color: #4a5568; }
+        .modal-group input { padding: 9px 12px; border: 1px solid #cbd5e0; border-radius: 6px; outline: none; font-size: 0.95rem; }
+        .btn-save-att { width: 100%; background: #3182ce; color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.95rem; }
+
+        /* 🖼️ FACE SCAN LOG MODAL */
+        .img-modal-content { background: white; padding: 20px; border-radius: 12px; max-width: 420px; text-align: center; }
+        .img-modal-content img { width: 100%; border-radius: 8px; margin-top: 15px; max-height: 280px; object-fit: cover; }
+    </style>
+</head>
+<body>
+
+    {% include 'sidebar.html' %}
+
+    <div class="main-wrapper">
+        <div class="page-header">
+            <span class="header-title">Attendance Summary</span>
+        </div>
+
+        <div class="content-area">
+            <div class="summary-card">
+                <div class="date-navigator">
+                    <div class="date-picker-box">
+                        <button class="date-nav-btn" onclick="navigateDate(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+                        <span id="currentDisplayDate">Loading...</span>
+                        <button class="date-nav-btn" onclick="navigateDate(1)"><i class="fa-solid fa-chevron-right"></i></button>
+
+                        <button class="cal-trigger-btn" onclick="openDatePicker()" title="Select Date">
+                            <i class="fa-regular fa-calendar-days"></i>
+                        </button>
+                        <input type="date" id="nativeDatePicker" style="position: absolute; opacity: 0; width:0; height:0; pointer-events: none;" onchange="selectPickerDate(this.value)">
+                    </div>
+
+                    <div class="review-status">
+                        <span class="status-dot-text" id="pendingStatusContainer"><i class="fa-solid fa-circle" style="font-size: 0.6rem;"></i> Total Pending for Approval : <strong id="summaryPendingCount">0</strong></span>
+                        <a href="/hr/approve-punches" class="btn-review">Review</a>
+                    </div>
+                </div>
+
+                <div class="metrics-row">
+                    <div class="m-item"><label>Total Staff</label><span id="mTotalStaff">0</span></div>
+                    <div class="m-item"><label>Present</label><span id="mPresent" style="color: #38a169;">0</span></div>
+                    <div class="m-item"><label>Absent</label><span id="mAbsent" style="color: #e53e3e;">0</span></div>
+                    <div class="m-item"><label>Half Day</label><span id="mHalfDay" style="color: #d69e2e;">0</span></div>
+                    <div class="m-item"><label>Leave</label><span id="mLeave" style="color: #818cf8;">0</span></div>
+                    <div class="m-item"><label>Unpaid Leave</label><span id="mUnpaidLeave" style="color: #991b1b;">0</span></div>
+                </div>
+            </div>
+
+            <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="attSearchInput" onkeyup="filterAttendanceList()" placeholder="Search staff by name or code...">
+            </div>
+
+            <div class="staff-section-title">
+                MARKED ATTENDANCE RECORDS <span class="count-pill" id="monthlyStaffCount">0</span>
+            </div>
+
+            <div id="staffCardsContainer">
+                <div style="text-align: center; padding: 30px; color: #a0aec0;">Loading attendance records...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ATTENDANCE TIME ENTRY MODAL -->
+    <div class="modal-overlay" id="timeModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title" id="modalStaffName">Mark Attendance</div>
+                <button class="close-modal" onclick="closeModal()">&times;</button>
+            </div>
+
+            <form id="attendanceTimeForm">
+                <input type="hidden" id="modalEmpId">
+                <input type="hidden" id="modalStatus">
+
+                <div class="modal-grid">
+                    <div class="modal-group">
+                        <label>In Time *</label>
+                        <input type="time" id="modalInTime" required>
+                    </div>
+                    <div class="modal-group">
+                        <label>Out Time</label>
+                        <input type="time" id="modalOutTime">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-save-att"><i class="fa-solid fa-check"></i> Save Attendance to DB</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 🖼️ FACE SCAN LOG & IMAGE MODAL -->
+    <div class="modal-overlay" id="imageModal" onclick="closeProfileImageModal()">
+        <div class="img-modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div class="modal-title" id="imgModalTitle">Face Scan Log</div>
+                <button class="close-modal" onclick="closeProfileImageModal()">&times;</button>
+            </div>
+            <img id="modalProfileImg" src="" alt="Face Scan Photo" style="display:none;">
+            <div id="modalPunchLogDetails" style="margin-top: 10px; font-size: 0.88rem; color: #475569; text-align: left; background: #f8fafc; padding: 14px; border-radius: 8px;">
+                No logs found for this date!
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = `${window.location.origin}/api/hr`;
+        let attendanceState = {};
+        let currentDate = new Date();
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateDateDisplay();
+        });
+
+        function updateDateDisplay() {
+            const options = { day: '2-digit', month: 'short', year: 'numeric', weekday: 'short' };
+            const formattedDisplay = currentDate.toLocaleDateString('en-GB', options).replace(',', ' |');
+            document.getElementById('currentDisplayDate').innerText = formattedDisplay;
+            loadAttendanceSummary();
+        }
+
+        function navigateDate(days) {
+            currentDate.setDate(currentDate.getDate() + days);
+            updateDateDisplay();
+        }
+
+        function openDatePicker() {
+            const dateInput = document.getElementById('nativeDatePicker');
+            dateInput.value = currentDate.toISOString().split('T')[0];
+            if (typeof dateInput.showPicker === 'function') {
+                dateInput.showPicker();
+            } else {
+                dateInput.click();
+            }
+        }
+
+        function selectPickerDate(val) {
+            if (val) {
+                currentDate = new Date(val);
+                updateDateDisplay();
+            }
+        }
+
+        async function loadAttendanceSummary() {
+            try {
+                const dateStr = currentDate.toISOString().split('T')[0];
+                const activeBranchId = localStorage.getItem('active_branch_id');
+                
+                const [empRes, attRes] = await Promise.all([
+                    fetch(`${API_BASE}/employees`),
+                    fetch(`${API_BASE}/attendance`)
+                ]);
+                
+                const empData = await empRes.json();
+                const attData = await attRes.json();
+                
+                const container = document.getElementById('staffCardsContainer');
+                if (!container) return;
+                container.innerHTML = '';
+
+                let empList = empData.employees || empData.data || (Array.isArray(empData) ? empData : []);
+                const attList = attData.data || attData.records || (Array.isArray(attData) ? attData : []);
+
+                if (activeBranchId) {
+                    empList = empList.filter(emp => {
+                        const empBranch = emp.Fk_BranchID || emp.branch_id || emp.BranchID || 1;
+                        return String(empBranch) === String(activeBranchId);
+                    });
+                }
+
+                if (empList && empList.length > 0) {
+                    const totalCount = empList.length;
+                    document.getElementById('mTotalStaff').innerText = totalCount;
+
+                    let pendingCount = 0;
+                    let presentCount = 0;
+                    let absentCount = 0;
+                    let halfDayCount = 0;
+                    let leaveCount = 0;
+                    let unpaidLeaveCount = 0;
+                    let displayedRecordsCount = 0;
+
+                    empList.forEach(emp => {
+                        const empKey = emp.id || emp.emp_code;
+                        const numericEmpId = extractNumericId(empKey);
+
+                        let matchedRecord = null;
+                        attList.forEach(att => {
+                            const attEmpId = extractNumericId(att.Fk_EmployeeID || att.EmployeeID || att.emp_id);
+                            const attDateKey = parseDateToYMD(att.PunchTime || att.AttendanceDate || att.CreatedOn);
+                            
+                            if (attEmpId === numericEmpId && attDateKey === dateStr) {
+                                matchedRecord = att;
+                            }
+                        });
+
+                        let currentStatus = 'UNMARKED';
+                        let isPending = false;
+                        let punchPhoto = '';
+                        let punchLocation = '-';
+                        let adminName = '';
+                        let adminRemark = '';
+
+                        if (matchedRecord) {
+                            currentStatus = (matchedRecord.Status || matchedRecord.status || 'UNMARKED').toUpperCase();
+                            const approval = matchedRecord.ApprovedStatus || matchedRecord.approved_status || 'Approved';
+                            punchPhoto = matchedRecord.ProfileImage || matchedRecord.Photo || '';
+                            punchLocation = matchedRecord.Location || matchedRecord.GeoFenceName || matchedRecord.BranchName || '-';
+                            adminName = matchedRecord.AdminName || matchedRecord.admin_name || '';
+                            adminRemark = matchedRecord.AdminNote || matchedRecord.admin_note || matchedRecord.Remark || '';
+                            
+                            if (approval === 'Pending') {
+                                isPending = true;
+                                pendingCount++;
+                            } else {
+                                if (currentStatus === 'PRESENT') presentCount++;
+                                else if (currentStatus === 'ABSENT') absentCount++;
+                                else if (currentStatus === 'HALF_DAY') halfDayCount++;
+                                else if (currentStatus === 'LEAVE') leaveCount++;
+                                else if (currentStatus === 'UNPAID_LEAVE') unpaidLeaveCount++;
+                            }
+                        }
+
+                        attendanceState[empKey] = currentStatus;
+
+                        if (currentStatus !== 'UNMARKED') {
+                            displayedRecordsCount++;
+
+                            let pClass = currentStatus === 'PRESENT' ? 'active-p' : '';
+                            let hdClass = currentStatus === 'HALF_DAY' ? 'active-hd' : '';
+                            let aClass = currentStatus === 'ABSENT' ? 'active-a' : '';
+                            let lClass = currentStatus === 'LEAVE' ? 'active-l' : '';
+                            let ulClass = currentStatus === 'UNPAID_LEAVE' ? 'active-ul' : '';
+                            let displayDateStr = currentDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', weekday: 'short' });
+
+                            container.innerHTML += `
+                                <div class="staff-card" data-name="${(emp.emp_name || '').toLowerCase()}" data-code="${(emp.emp_code || '').toLowerCase()}">
+                                    <div class="staff-info">
+                                        <div class="staff-name">
+                                            ${emp.emp_name} 
+                                            ${isPending ? '<span style="font-size:0.75rem; background:#fed7d7; color:#c53030; padding:2px 8px; border-radius:4px; margin-left:6px; font-weight:600;">Pending Approval</span>' : '<span style="font-size:0.75rem; background:#c6f6d5; color:#22543d; padding:2px 8px; border-radius:4px; margin-left:6px; font-weight:600;">Approved</span>'}
+                                        </div>
+                                        <div class="staff-sub">Code: ${emp.emp_code} &nbsp;|&nbsp; Shift: ${emp.shift || '09:00 AM - 05:00 PM'}</div>
+                                        <div class="staff-log-link" onclick="openProfileImageModal('${punchPhoto}', '${displayDateStr}', '${punchLocation}', '${adminName}', '${adminRemark}', '${emp.emp_name}')">
+                                            <i class="fa-solid fa-location-dot"></i> ${punchLocation}
+                                        </div>
+                                    </div>
+
+                                    <div class="action-grid" id="grid-${empKey}">
+                                        <button class="att-btn ${pClass}" onclick="handleStatusClick('${empKey}', '${emp.emp_name.replace(/'/g, "\\'")}', 'PRESENT')">Present</button>
+                                        <button class="att-btn ${hdClass}" onclick="directSaveDB('${empKey}', 'HALF_DAY')">Half Day</button>
+                                        <button class="att-btn ${aClass}" onclick="directSaveDB('${empKey}', 'ABSENT')">Absent</button>
+                                        <button class="att-btn ${lClass}" onclick="directSaveDB('${empKey}', 'LEAVE')">Leave</button>
+                                        <button class="att-btn ${ulClass}" onclick="directSaveDB('${empKey}', 'UNPAID_LEAVE')">Unpaid</button>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    });
+
+                    const pendingContainerEl = document.getElementById('pendingStatusContainer');
+                    document.getElementById('summaryPendingCount').innerText = pendingCount;
+                    if (pendingCount > 0) {
+                        pendingContainerEl.className = "status-dot-text has-pending";
+                    } else {
+                        pendingContainerEl.className = "status-dot-text";
+                    }
+
+                    document.getElementById('monthlyStaffCount').innerText = displayedRecordsCount;
+                    document.getElementById('mPresent').innerText = presentCount;
+                    document.getElementById('mAbsent').innerText = absentCount;
+                    document.getElementById('mHalfDay').innerText = halfDayCount;
+                    document.getElementById('mLeave').innerText = leaveCount;
+                    document.getElementById('mUnpaidLeave').innerText = unpaidLeaveCount;
+
+                    if (displayedRecordsCount === 0) {
+                        container.innerHTML = `<div style="text-align: center; padding: 40px; color: #a0aec0; font-weight: 500;">No attendance marked for this date yet.</div>`;
+                    }
+
+                } else {
+                    container.innerHTML = `<div style="text-align: center; padding: 20px; color: #a0aec0;">No staff records found in database.</div>`;
+                    document.getElementById('mTotalStaff').innerText = '0';
+                    document.getElementById('monthlyStaffCount').innerText = '0';
+                    document.getElementById('summaryPendingCount').innerText = '0';
+                    document.getElementById('pendingStatusContainer').className = "status-dot-text";
+                }
+            } catch (err) {
+                console.error("Attendance Summary Load Error:", err);
+            }
+        }
+
+        // 🖼️ FACE SCAN & PUNCH LOG MODAL FUNCTIONS WITH STAFF PROFILE FALLBACK
+        function openProfileImageModal(imgUrl, dateStr = '', loc = '', adminName = '', remark = '', staffName = 'Staff') {
+            const imgElem = document.getElementById('modalProfileImg');
+            const detailsElem = document.getElementById('modalPunchLogDetails');
+
+            // Fallback to avoid empty photo container if punchPhoto is missing
+            let finalImgUrl = imgUrl;
+            if (!finalImgUrl || finalImgUrl === 'undefined' || finalImgUrl === 'null' || finalImgUrl.trim() === '') {
+                finalImgUrl = ''; 
+            }
+
+            if (finalImgUrl && finalImgUrl.startsWith('http')) {
+                imgElem.src = finalImgUrl;
+                imgElem.style.display = 'block';
+            } else {
+                imgElem.style.display = 'none';
+            }
+
+            if (loc && loc !== '-' && loc.trim() !== '') {
+                let locationDisplay = adminName ? `<span style="color:#2563eb; font-weight:700;">Admin Override: ${adminName}</span>` : `<i class="fa-solid fa-location-dot" style="color: #059669;"></i> ${loc}`;
+                let remarkDisplay = remark ? `<div style="margin-top:6px; color:#b45309; font-style:italic;">Remark: ${remark}</div>` : '';
+                
+                detailsElem.innerHTML = `
+                    <div style="font-weight: 700; color: #0f172a; margin-bottom: 4px;">Face Scan Log | ${staffName}</div>
+                    <div style="color: #64748b; font-size: 0.8rem; margin-top: 2px;">${locationDisplay}</div>
+                    ${remarkDisplay}
+                    <div style="color: #94a3b8; font-size: 0.75rem; margin-top: 6px;">Recorded on ${dateStr}</div>
+                `;
+            } else {
+                detailsElem.innerHTML = `No logs or geofence details found for this date!`;
+            }
+
+            document.getElementById('imageModal').style.display = 'flex';
+        }
+
+        function closeProfileImageModal() {
+            document.getElementById('imageModal').style.display = 'none';
+        }
+
+        function extractNumericId(codeStr) {
+            if (!codeStr) return 1;
+            const matches = String(codeStr).match(/\d+/);
+            return matches ? parseInt(matches[0], 10) : 1;
+        }
+
+        function parseDateToYMD(dateStr) {
+            if (!dateStr) return null;
+            const d = new Date(dateStr);
+            if (isNaN(d.getTime())) return String(dateStr).split('T')[0];
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${day}`;
+        }
+
+        function handleStatusClick(empId, empName, status) {
+            document.getElementById('modalEmpId').value = empId;
+            document.getElementById('modalStatus').value = status;
+            document.getElementById('modalStaffName').innerText = `Present: ${empName}`;
+
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('modalInTime').value = `${hours}:${minutes}`;
+            document.getElementById('modalOutTime').value = '';
+
+            document.getElementById('timeModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('timeModal').style.display = 'none';
+        }
+
+        document.getElementById('attendanceTimeForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const empId = document.getElementById('modalEmpId').value;
+            const status = document.getElementById('modalStatus').value;
+            const inTime = document.getElementById('modalInTime').value;
+            const outTime = document.getElementById('modalOutTime').value;
+
+            await postAttendanceToDB(empId, status, inTime, outTime);
+            closeModal();
+        });
+
+        async function directSaveDB(empId, status) {
+            await postAttendanceToDB(empId, status, null, null);
+        }
+
+        async function postAttendanceToDB(empId, status, inTime, outTime) {
+            try {
+                const payload = {
+                    emp_id: empId,
+                    status: status,
+                    in_time: inTime,
+                    out_time: outTime,
+                    date: currentDate.toISOString().split('T')[0]
+                };
+
+                const res = await fetch(`${API_BASE}/mark-attendance`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await res.json();
+
+                if (res.ok && result.success) {
+                    attendanceState[empId] = status;
+                    loadAttendanceSummary();
+                } else {
+                    alert(`Error: ${result.error || 'Could not mark attendance.'}`);
+                }
+            } catch (err) {
+                alert("Network Error: Could not reach backend server.");
+            }
+        }
+
+        function filterAttendanceList() {
+            const query = document.getElementById('attSearchInput').value.toLowerCase().trim();
+            const cards = document.querySelectorAll('.staff-card');
+            cards.forEach(card => {
+                const name = card.getAttribute('data-name') || '';
+                const code = card.getAttribute('data-code') || '';
+                card.style.display = (name.includes(query) || code.includes(query)) ? 'flex' : 'none';
+            });
+        }
+    </script>
+</body>
+</html>

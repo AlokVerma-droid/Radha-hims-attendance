@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Radha HIMS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: #f8fafc; color: #1e293b; display: flex; height: 100vh; overflow: hidden; }
+
+        /* Main Page Wrapper */
+        .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow-y: auto; height: 100vh; background: #f8fafc; min-width: 0; }
+
+        /* Top Header */
+        .top-header { height: 60px; background: #ffffff; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; position: sticky; top: 0; z-index: 100; flex-shrink: 0; }
+        .global-search { position: relative; width: 420px; }
+        .global-search input { width: 100%; padding: 8px 12px 8px 36px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.88rem; outline: none; background: #ffffff; }
+        .global-search i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
+        .kbd-badge { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 4px; padding: 1px 5px; font-size: 0.68rem; color: #64748b; }
+
+        .header-right { display: flex; align-items: center; gap: 18px; }
+        .h-icon { background: none; border: none; font-size: 1.15rem; color: #64748b; cursor: pointer; }
+        .user-profile { display: flex; align-items: center; gap: 10px; }
+        .user-name-tag { font-weight: 600; font-size: 0.9rem; color: #334155; }
+        .user-avatar { width: 34px; height: 34px; background: #2563eb; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: bold; }
+
+        /* Settings Page Body */
+        .content-body { padding: 28px 36px 60px 36px; flex: 1; max-width: 1100px; }
+        
+        .settings-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; }
+        .settings-heading { font-size: 1.45rem; font-weight: 700; color: #0f172a; }
+        .help-link { color: #2563eb; text-decoration: none; font-size: 0.92rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+        .help-link:hover { text-decoration: underline; }
+
+        /* Search Settings Bar */
+        .settings-search-bar { position: relative; margin-bottom: 24px; }
+        .settings-search-bar input { width: 100%; padding: 12px 16px 12px 42px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.92rem; outline: none; background: #ffffff; color: #1e293b; }
+        .settings-search-bar input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+        .settings-search-bar i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.95rem; }
+
+        /* Group Block Containers */
+        .settings-group { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; margin-bottom: 24px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
+        
+        .group-header { padding: 18px 24px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #f1f5f9; background: #ffffff; }
+        .group-icon-box { width: 32px; height: 32px; border-radius: 8px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: 0.95rem; }
+        .group-title { font-size: 1.05rem; font-weight: 700; color: #0f172a; }
+
+        /* Item Rows */
+        .settings-item { padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; cursor: pointer; text-decoration: none; color: inherit; transition: background-color 0.15s ease; }
+        .settings-item:last-child { border-bottom: none; }
+        .settings-item:hover { background-color: #f8fafc; }
+
+        .item-left { display: flex; flex-direction: column; gap: 3px; }
+        .item-title { font-size: 0.93rem; font-weight: 600; color: #1e293b; }
+        .item-desc { font-size: 0.8rem; color: #64748b; font-weight: 400; }
+
+        .item-arrow { color: #cbd5e1; font-size: 0.85rem; }
+        .settings-item:hover .item-arrow { color: #2563eb; }
+
+        /* Logout Row */
+        .logout-row { padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; background: #ffffff; }
+        .btn-logout { background: #fee2e2; color: #dc2626; border: none; padding: 7px 18px; border-radius: 6px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: 0.15s; }
+        .btn-logout:hover { background: #fecaca; }
+
+        /* Generic Edit Modal */
+        .modal-bg { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.5); z-index: 1100; justify-content: center; align-items: center; backdrop-filter: blur(2px); }
+        .modal-card { background: #ffffff; width: 90%; max-width: 520px; border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); overflow: hidden; }
+        .modal-header { padding: 16px 22px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; background: #f8fafc; }
+        .modal-title { font-size: 1.05rem; font-weight: 700; color: #0f172a; }
+        .modal-close-btn { background: none; border: none; font-size: 1.3rem; color: #94a3b8; cursor: pointer; }
+        .modal-body { padding: 22px; }
+        .modal-body label { font-size: 0.85rem; font-weight: 600; color: #475569; display: block; margin-bottom: 6px; }
+        .modal-body textarea, .modal-body input { width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.92rem; outline: none; }
+        .modal-body textarea:focus, .modal-body input:focus { border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15); }
+        .modal-footer { padding: 14px 22px; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 10px; background: #f8fafc; }
+        .btn-cancel-modal { background: #ffffff; border: 1px solid #cbd5e1; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.85rem; color: #64748b; }
+        .btn-save-modal { background: #2563eb; color: #ffffff; border: none; padding: 8px 18px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; }
+    </style>
+</head>
+<body>
+
+    <!-- Centralized Sidebar Include -->
+    {% include 'sidebar.html' %}
+
+    <div class="main-wrapper">
+        <!-- Top Navigation Header -->
+        <div class="top-header">
+            <div class="global-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" placeholder="Search...">
+                <span class="kbd-badge">Ctrl+K</span>
+            </div>
+            
+            <div class="header-right">
+                <button class="h-icon" onclick="alert('No new notifications')"><i class="fa-regular fa-bell"></i></button>
+                <div class="user-profile">
+                    <span class="user-name-tag" id="topbarUserName">Loading...</span>
+                    <div class="user-avatar" id="topbarUserAvatar">--</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-body">
+            <div class="settings-header">
+                <h1 class="settings-heading">Settings</h1>
+                <a href="/hr/help" class="help-link">Get Help <i class="fa-solid fa-circle-question"></i></a>
+            </div>
+
+            <!-- Instant Filter Search Input -->
+            <div class="settings-search-bar">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="settingsSearchInput" placeholder='Search Settings (press "/" to search)' onkeyup="filterSettingsList()">
+            </div>
+
+            <!-- GROUP 1: ATTENDANCE SETTINGS -->
+            <div class="settings-group setting-group-card">
+                <div class="group-header">
+                    <div class="group-icon-box"><i class="fa-regular fa-clock"></i></div>
+                    <span class="group-title">Attendance Settings</span>
+                </div>
+
+                <div class="settings-item" onclick="openSettingEditor('attendance_templates', 'Attendance Templates')">
+                    <div class="item-left">
+                        <span class="item-title">Attendance Templates</span>
+                        <span class="item-desc" id="desc_attendance_templates">Loading...</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right item-arrow"></i>
+                </div>
+
+                <div class="settings-item" onclick="openSettingEditor('holiday_weekly_off_rules', 'Attendance Rules for Holiday & Weekly Off')">
+                    <div class="item-left">
+                        <span class="item-title">Attendance Rules for Holiday & Weekly Off</span>
+                        <span class="item-desc" id="desc_holiday_weekly_off_rules">Loading...</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right item-arrow"></i>
+                </div>
+
+                <div class="settings-item" onclick="openSettingEditor('shift_settings', 'Shift Settings')">
+                    <div class="item-left">
+                        <span class="item-title">Shift Settings</span>
+                        <span class="item-desc" id="desc_shift_settings">Loading...</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right item-arrow"></i>
+                </div>
+
+                <div class="settings-item" onclick="openSettingEditor('automation_rules', 'Automation Rules')">
+                    <div class="item-left">
+                        <span class="item-title">Automation Rules</span>
+                        <span class="item-desc" id="desc_automation_rules">Loading...</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right item-arrow"></i>
+                </div>
+
+                <div class="settings-item" onclick="openSettingEditor('holiday_policy', 'Holiday Policy')">
+                    <div class="item-left">
+                        <span class="item-title">Holiday Policy</span>
+                        <span class="item-desc" id="desc_holiday_policy">Loading...</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right item-arrow"></i>
+                </div>
+
+                <div class="settings-item" onclick="openSettingEditor('leave_policy', 'Leave Policy')">
+                    <div class="item-left">
+                        <span class="item-title">Leave Policy</span>
+                        <span class="item-desc" id="desc_leave_policy">Loading...</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right item-arrow"></i>
+                </div>
+
+                <div class="settings-item" onclick="openSettingEditor('weekly_holidays', 'Weekly Holidays')">
+                    <div class="item-left">
+                        <span class="item-title">Weekly Holidays</span>
+                        <span class="item-desc" id="desc_weekly_holidays">Loading...</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right item-arrow"></i>
+                </div>
+            </div>
+
+            <!-- GROUP 2: SALARY SETTINGS -->
+            <div class="settings-group setting-group-card">
+                <div class="group-header">
+                    <div class="group-icon-box"><i class="fa-solid fa-calculator"></i></div>
+                    <span class="group-title">Salary Settings</span>
+                </div>
+
+                <div class="settings-item" onclick="openSettingEditor('salary_revision_policy', 'Salary Revision Approval Policy')">
+                    <div class="item-left">
+                        <span class="item-title">Salary Revision Approval Policy</span>
+                        <span class="item-desc" id="desc_salary_revision_policy">Loading...</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right item-arrow"></i>
+                </div>
+
+                <div class="settings-item" onclick="openSettingEditor('salary_templates', 'Manage Salary Templates')">
+                    <div class="item-left">
+                        <span class="item-title">Manage Salary Templates</span>
+                        <span class="item-desc" id="desc_salary_templates">Loading...</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right item-arrow"></i>
+                </div>
+
+                <div class="settings-item" onclick="openSettingEditor('work_rate_card', 'Work Rate Card')">
+                    <div class="item-left">
+                        <span class="item-title">Work Rate Card</span>
+                        <span class="item-desc" id="desc_work_rate_card">Loading...</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right item-arrow"></i>
+                </div>
+
+                <div class="settings-item" onclick="openSettingEditor('daily_work_entry', 'Daily Work Entry')">
+                    <div class="item-left">
+                        <span class="item-title">Daily Work Entry</span>
+                        <span class="item-desc" id="desc_daily_work_entry">Loading...</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right item-arrow"></i>
+                </div>
+
+                <div class="settings-item" onclick="openSettingEditor('salary_access_staff', 'Salary Details Access to Staff')">
+                    <div class="item-left">
+                        <span class="item-title">Salary Details Access to Staff</span>
+                        <span class="item-desc" id="desc_salary_access_staff">Loading...</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right item-arrow"></i>
+                </div>
+
+                <div class="settings-item" onclick="openSettingEditor('custom_deduction_plan', 'Custom Deduction Plan')">
+                    <div class="item-left">
+                        <span class="item-title">Custom Deduction Plan</span>
+                        <span class="item-desc" id="desc_custom_deduction_plan">Loading...</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right item-arrow"></i>
+                </div>
+            </div>
+
+            <!-- GROUP 3: BUSINESS SETTINGS -->
+            <div class="settings-group setting-group-card">
+                <div class="group-header">
+                    <div class="group-icon-box"><i class="fa-solid fa-briefcase"></i></div>
+                    <span class="group-title">Business Settings</span>
+                </div>
+
+                <div class="settings-item" onclick="openSettingEditor('bulk_update_staff', 'Bulk Update Staff')">
+                    <div class="item-left">
+                        <span class="item-title">Bulk Update Staff</span>
+                        <span class="item-desc" id="desc_bulk_update_staff">Loading...</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right item-arrow"></i>
+                </div>
+
+                <div class="settings-item" onclick="openSettingEditor('alerts_notifications', 'Alerts and Notifications')">
+                    <div class="item-left">
+                        <span class="item-title">Alerts and Notifications</span>
+                        <span class="item-desc" id="desc_alerts_notifications">Loading...</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right item-arrow"></i>
+                </div>
+
+                <div class="settings-item" onclick="openSettingEditor('broadcast_messages', 'Broadcast Messages')">
+                    <div class="item-left">
+                        <span class="item-title">Broadcast Messages</span>
+                        <span class="item-desc" id="desc_broadcast_messages">Loading...</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right item-arrow"></i>
+                </div>
+
+                <div class="settings-item" onclick="openSettingEditor('manage_documents', 'Manage Documents')">
+                    <div class="item-left">
+                        <span class="item-title">Manage Documents</span>
+                        <span class="item-desc" id="desc_manage_documents">Loading...</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right item-arrow"></i>
+                </div>
+
+                <div class="settings-item" onclick="openSettingEditor('invite_staff', 'Invite Staff')">
+                    <div class="item-left">
+                        <span class="item-title">Invite Staff</span>
+                        <span class="item-desc" id="desc_invite_staff">Loading...</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right item-arrow"></i>
+                </div>
+
+                <div class="settings-item" onclick="openSettingEditor('business_state_city', 'Business State & City')">
+                    <div class="item-left">
+                        <span class="item-title">Business State & City</span>
+                        <span class="item-desc" id="desc_business_state_city">Loading...</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right item-arrow"></i>
+                </div>
+
+                <div class="settings-item" onclick="openSettingEditor('business_name', 'Business Name')">
+                    <div class="item-left">
+                        <span class="item-title">Business Name</span>
+                        <span class="item-desc" id="desc_business_name">Loading...</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right item-arrow"></i>
+                </div>
+
+                <div class="settings-item" onclick="openSettingEditor('business_address', 'Business Address')">
+                    <div class="item-left">
+                        <span class="item-title">Business Address</span>
+                        <span class="item-desc" id="desc_business_address">Loading...</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right item-arrow"></i>
+                </div>
+
+                <div class="settings-item" onclick="openSettingEditor('business_logo', 'Business Logo')">
+                    <div class="item-left">
+                        <span class="item-title">Business Logo</span>
+                        <span class="item-desc" id="desc_business_logo">Loading...</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right item-arrow"></i>
+                </div>
+            </div>
+
+            <!-- GROUP 4: ORGANISATION SETTINGS -->
+            <div class="settings-group setting-group-card">
+                <div class="group-header">
+                    <div class="group-icon-box"><i class="fa-solid fa-gear"></i></div>
+                    <span class="group-title">Organisation Settings</span>
+                </div>
+
+                <div class="settings-item" onclick="openSettingEditor('manage_business_functions', 'Manage Business Functions')">
+                    <div class="item-left">
+                        <span class="item-title">Manage Business Functions</span>
+                        <span class="item-desc" id="desc_manage_business_functions">Loading...</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right item-arrow"></i>
+                </div>
+
+                <div class="settings-item" onclick="openSettingEditor('manage_users', 'Manage Users')">
+                    <div class="item-left">
+                        <span class="item-title">Manage Users</span>
+                        <span class="item-desc" id="desc_manage_users">Loading...</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right item-arrow"></i>
+                </div>
+
+                <div class="settings-item" onclick="openSettingEditor('roles_permissions', 'Roles & Permissions')">
+                    <div class="item-left">
+                        <span class="item-title">Roles & Permissions</span>
+                        <span class="item-desc" id="desc_roles_permissions">Loading...</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right item-arrow"></i>
+                </div>
+
+                <div class="settings-item" onclick="openSettingEditor('subscriptions', 'Subscriptions')">
+                    <div class="item-left">
+                        <span class="item-title">Subscriptions</span>
+                        <span class="item-desc" id="desc_subscriptions">Loading...</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right item-arrow"></i>
+                </div>
+
+                <div class="settings-item" onclick="openSettingEditor('channel_partner_id', 'Channel Partner ID')">
+                    <div class="item-left">
+                        <span class="item-title">Channel Partner ID (optional)</span>
+                        <span class="item-desc" id="desc_channel_partner_id">Loading...</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right item-arrow"></i>
+                </div>
+
+                <div class="settings-item" onclick="openSettingEditor('add_delete_business', 'Add/Delete Business')">
+                    <div class="item-left">
+                        <span class="item-title">Add/Delete Business</span>
+                        <span class="item-desc" id="desc_add_delete_business">Loading...</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right item-arrow"></i>
+                </div>
+            </div>
+
+            <!-- GROUP 5: PROFILE SETTINGS -->
+            <div class="settings-group setting-group-card">
+                <div class="group-header">
+                    <div class="group-icon-box"><i class="fa-regular fa-user"></i></div>
+                    <span class="group-title">Profile</span>
+                </div>
+
+                <div class="settings-item" onclick="openSettingEditor('profile_name', 'Full Name')">
+                    <div class="item-left">
+                        <span class="item-title">Name</span>
+                        <span class="item-desc" id="desc_profile_name">Loading...</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right item-arrow"></i>
+                </div>
+
+                <div class="settings-item" onclick="openSettingEditor('profile_phone', 'Phone Number')">
+                    <div class="item-left">
+                        <span class="item-title">Phone Number</span>
+                        <span class="item-desc" id="desc_profile_phone">Loading...</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right item-arrow"></i>
+                </div>
+
+                <div class="settings-item" onclick="openSettingEditor('profile_email', 'Email Address')">
+                    <div class="item-left">
+                        <span class="item-title">Email Address</span>
+                        <span class="item-desc" id="desc_profile_email">Loading...</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right item-arrow"></i>
+                </div>
+
+                <div class="logout-row">
+                    <span style="font-size: 0.93rem; font-weight: 600; color: #1e293b;">Logout</span>
+                    <button class="btn-logout" onclick="handleLogout()">Logout</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DYNAMIC SETTING EDIT MODAL -->
+    <div class="modal-bg" id="settingEditModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <span class="modal-title" id="modalConfigTitle">Edit Setting</span>
+                <button type="button" class="modal-close-btn" onclick="closeSettingModal()">&times;</button>
+            </div>
+            <form id="settingForm" onsubmit="submitSettingUpdate(event)">
+                <div class="modal-body">
+                    <input type="hidden" id="editKey">
+                    <label id="editLabel">Current Configuration Value</label>
+                    <textarea id="editValue" rows="3" required></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancel-modal" onclick="closeSettingModal()">Cancel</button>
+                    <button type="submit" class="btn-save-modal" id="btnSaveConfig">
+                        <i class="fa-solid fa-check"></i> Save to Database
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const HR_API = `${window.location.origin}/api/hr`;
+        let dbSettingsMap = {};
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCurrentUser();
+            fetchAllSettingsFromDB();
+        });
+
+        async function loadCurrentUser() {
+            try {
+                const res = await fetch(`${HR_API}/current-user`);
+                if (res.ok) {
+                    const data = await res.json();
+                    const name = data.name || data.username || data.user_name || 'Admin User';
+                    document.getElementById('topbarUserName').innerText = name;
+                    const initials = name.split(' ').filter(Boolean).map(w => w[0]).join('').substring(0, 2).toUpperCase() || 'SA';
+                    document.getElementById('topbarUserAvatar').innerText = initials;
+                }
+            } catch (e) {
+                console.error("Error loading user header:", e);
+            }
+        }
+
+        async function fetchAllSettingsFromDB() {
+            const activeBranchId = localStorage.getItem('active_branch_id') || '';
+            try {
+                const res = await fetch(`${HR_API}/settings?branch_id=${encodeURIComponent(activeBranchId)}`);
+                const data = await res.json();
+
+                if (data.success && data.settings) {
+                    dbSettingsMap = data.settings;
+
+                    for (const [key, val] of Object.entries(dbSettingsMap)) {
+                        const el = document.getElementById(`desc_${key}`);
+                        if (el) {
+                            el.innerText = val || 'Not Configured';
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error("Network error fetching settings:", err);
+            }
+        }
+
+        // 🎯 Smart Router: Links both Attendance Templates and Leave Policy to their respective sub-pages
+        function openSettingEditor(key, title) {
+            if (key === 'attendance_templates') {
+                window.location.href = '/hr/settings/attendance-templates';
+                return;
+            }
+            if (key === 'leave_policy') {
+                window.location.href = '/hr/settings/leave-policy';
+                return;
+            }
+
+            document.getElementById('modalConfigTitle').innerText = `Configure ${title}`;
+            document.getElementById('editKey').value = key;
+            document.getElementById('editLabel').innerText = `Update value for ${title}`;
+            
+            const currentVal = dbSettingsMap[key] || '';
+            document.getElementById('editValue').value = currentVal;
+
+            document.getElementById('settingEditModal').style.display = 'flex';
+        }
+
+        function closeSettingModal() {
+            document.getElementById('settingEditModal').style.display = 'none';
+        }
+
+        async function submitSettingUpdate(e) {
+            e.preventDefault();
+            const key = document.getElementById('editKey').value;
+            const value = document.getElementById('editValue').value.trim();
+
+            const btn = document.getElementById('btnSaveConfig');
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Saving...`;
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`${HR_API}/settings/update`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ key: key, value: value })
+                });
+
+                const result = await res.json();
+                if (res.ok && result.success) {
+                    dbSettingsMap[key] = value;
+                    const descEl = document.getElementById(`desc_${key}`);
+                    if (descEl) descEl.innerText = value || 'Not Configured';
+
+                    closeSettingModal();
+                } else {
+                    alert(`Error saving setting: ${result.error || 'Server error'}`);
+                }
+            } catch (err) {
+                alert("Network error: Could not reach the server to save changes.");
+            } finally {
+                btn.innerHTML = `<i class="fa-solid fa-check"></i> Save to Database`;
+                btn.disabled = false;
+            }
+        }
+
+        function filterSettingsList() {
+            const query = document.getElementById('settingsSearchInput').value.toLowerCase().trim();
+            const items = document.querySelectorAll('.settings-item');
+            const groups = document.querySelectorAll('.setting-group-card');
+
+            items.forEach(item => {
+                const text = item.innerText.toLowerCase();
+                item.style.display = text.includes(query) ? 'flex' : 'none';
+            });
+
+            groups.forEach(group => {
+                const visible = group.querySelectorAll('.settings-item[style*="display: flex"]');
+                group.style.display = (query === '' || visible.length > 0) ? 'block' : 'none';
+            });
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+                e.preventDefault();
+                const searchInput = document.getElementById('settingsSearchInput');
+                if (searchInput) {
+                    searchInput.focus();
+                    searchInput.select();
+                }
+            }
+        });
+
+        function handleLogout() {
+            if (confirm("Are you sure you want to log out of Radha HIMS?")) {
+                window.location.href = "/";
+            }
+        }
+    </script>
+</body>
+</html>

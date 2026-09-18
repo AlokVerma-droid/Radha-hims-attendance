@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taskman - Task Management</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f8fafc; display: flex; height: 100vh; overflow: hidden; color: #1e293b; }
+        
+        /* 🎯 Complete Sidebar Styling Integration */
+        .sidebar {
+            width: 240px;
+            background: #ffffff;
+            border-right: 1px solid #edf2f7;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100vh;
+            flex-shrink: 0;
+        }
+        .sidebar-brand {
+            padding: 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #edf2f7;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+        }
+        .nav-menu {
+            padding: 10px 0;
+            list-style: none;
+            margin: 0;
+            overflow-y: auto;
+        }
+        .nav-item {
+            margin: 2px 10px;
+        }
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            color: #64748b;
+            text-decoration: none;
+            font-size: 0.88rem;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.15s ease;
+        }
+        .nav-link i, .nav-link svg {
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+        }
+        .nav-link:hover {
+            background-color: #f1f5f9;
+            color: #1e293b;
+        }
+        .nav-link.active {
+            background-color: #eff6ff;
+            color: #2563eb;
+        }
+
+        /* 🎯 Main Wrapper & Layout */
+        .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
+        
+        .topbar {
+            height: 60px;
+            background: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: #f1f5f9;
+            padding: 6px 14px;
+            border-radius: 8px;
+            width: 320px;
+        }
+        .search-box input {
+            border: none;
+            background: transparent;
+            outline: none;
+            margin-left: 8px;
+            width: 100%;
+            font-size: 0.9rem;
+        }
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        .user-avatar {
+            width: 35px;
+            height: 35px;
+            background: #2563eb;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
+        /* Content Area */
+        .content-container { padding: 24px; }
+        
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        .header-actions h2 { font-size: 1.4rem; font-weight: 700; color: #0f172a; }
+        
+        .btn-primary {
+            background: #2563eb;
+            color: #fff;
+            padding: 9px 18px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.2s;
+        }
+        .btn-primary:hover { background: #1d4ed8; }
+
+        /* Task Board Columns */
+        .task-board {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            align-items: flex-start;
+        }
+        .task-column {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            min-height: 520px;
+        }
+        .column-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 700;
+            font-size: 0.95rem;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f1f5f9;
+        }
+        .task-badge {
+            background: #f1f5f9;
+            color: #475569;
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        /* Task Card */
+        .task-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 14px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .task-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.06);
+        }
+        .task-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        .task-title { font-weight: 600; font-size: 0.95rem; color: #1e293b; }
+        .btn-card-del {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: color 0.15s;
+        }
+        .btn-card-del:hover { color: #ef4444; }
+        
+        .task-desc { font-size: 0.82rem; color: #64748b; line-height: 1.4; word-break: break-word; }
+        
+        .task-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.78rem;
+            color: #94a3b8;
+            margin-top: 5px;
+            padding-top: 8px;
+            border-top: 1px dashed #f1f5f9;
+        }
+        .priority-badge {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.72rem;
+        }
+        .priority-high { background: #fee2e2; color: #dc2626; }
+        .priority-med { background: #fef3c7; color: #d97706; }
+        .priority-low { background: #dcfce7; color: #16a34a; }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.45);
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+        .modal-content {
+            background: white;
+            padding: 24px;
+            border-radius: 10px;
+            width: 450px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        .modal-content input, .modal-content textarea, .modal-content select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            outline: none;
+            font-size: 0.9rem;
+        }
+        .modal-content input:focus, .modal-content textarea:focus, .modal-content select:focus {
+            border-color: #2563eb;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar include -->
+    {% include 'sidebar.html' %}
+
+    <div class="main-wrapper">
+        <!-- Topbar -->
+        <div class="topbar">
+            <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass" style="color:#94a3b8;"></i>
+                <input type="text" id="taskSearchInput" placeholder="Search tasks..." onkeyup="filterTasks()">
+            </div>
+            <div class="user-profile">
+                <span id="topbarUserName">System Admin</span>
+                <div class="user-avatar" id="topbarUserAvatar">SA</div>
+            </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="content-container">
+            <div class="header-actions">
+                <h2>Task Management</h2>
+                <button class="btn-primary" onclick="openTaskModal()"><i class="fa-solid fa-plus"></i> Add New Task</button>
+            </div>
+
+            <!-- Task Board -->
+            <div class="task-board">
+                <!-- To Do Column -->
+                <div class="task-column" id="col-todo">
+                    <div class="column-header">
+                        <span><i class="fa-regular fa-circle" style="color: #64748b; margin-right: 6px;"></i> To Do</span>
+                        <span class="task-badge" id="badge-todo">2</span>
+                    </div>
+                    <div class="task-list" style="display: flex; flex-direction: column; gap: 12px;">
+                        <div class="task-card">
+                            <div class="task-card-header">
+                                <span class="task-title">Review Staff Attendance</span>
+                                <button class="btn-card-del" onclick="deleteTask(this, 'todo')"><i class="fa-solid fa-trash-can"></i></button>
+                            </div>
+                            <p class="task-desc">Verify punch records for the current shift before payroll cycle.</p>
+                            <div class="task-footer">
+                                <span class="priority-badge priority-high">High</span>
+                                <span><i class="fa-regular fa-clock"></i> Today</span>
+                            </div>
+                        </div>
+                        <div class="task-card">
+                            <div class="task-card-header">
+                                <span class="task-title">Generate Monthly Payroll Report</span>
+                                <button class="btn-card-del" onclick="deleteTask(this, 'todo')"><i class="fa-solid fa-trash-can"></i></button>
+                            </div>
+                            <p class="task-desc">Export salary sheet and verify deductions.</p>
+                            <div class="task-footer">
+                                <span class="priority-badge priority-med">Medium</span>
+                                <span><i class="fa-regular fa-clock"></i> Tomorrow</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- In Progress Column -->
+                <div class="task-column" id="col-inprogress">
+                    <div class="column-header">
+                        <span><i class="fa-solid fa-spinner" style="color: #2563eb; margin-right: 6px;"></i> In Progress</span>
+                        <span class="task-badge" id="badge-inprogress">1</span>
+                    </div>
+                    <div class="task-list" style="display: flex; flex-direction: column; gap: 12px;">
+                        <div class="task-card">
+                            <div class="task-card-header">
+                                <span class="task-title">Update Branch Geofencing</span>
+                                <button class="btn-card-del" onclick="deleteTask(this, 'inprogress')"><i class="fa-solid fa-trash-can"></i></button>
+                            </div>
+                            <p class="task-desc">Adjust the GPS radius coordinates for current branch location.</p>
+                            <div class="task-footer">
+                                <span class="priority-badge priority-low">Low</span>
+                                <span><i class="fa-regular fa-clock"></i> Upcoming</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Completed Column -->
+                <div class="task-column" id="col-completed">
+                    <div class="column-header">
+                        <span><i class="fa-solid fa-circle-check" style="color: #16a34a; margin-right: 6px;"></i> Completed</span>
+                        <span class="task-badge" id="badge-completed">1</span>
+                    </div>
+                    <div class="task-list" style="display: flex; flex-direction: column; gap: 12px;">
+                        <div class="task-card">
+                            <div class="task-card-header">
+                                <span class="task-title">Employee Document Verification</span>
+                                <button class="btn-card-del" onclick="deleteTask(this, 'completed')"><i class="fa-solid fa-trash-can"></i></button>
+                            </div>
+                            <p class="task-desc">Identity and PAN details updated for new joinees.</p>
+                            <div class="task-footer">
+                                <span class="priority-badge priority-low">Completed</span>
+                                <span><i class="fa-regular fa-calendar-check"></i> Yesterday</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Task Modal -->
+    <div class="modal" id="taskModal">
+        <div class="modal-content">
+            <h3 style="font-size: 1.1rem; color: #0f172a;">Create New Task</h3>
+            <input type="text" id="taskTitle" placeholder="Task Title" required>
+            <textarea id="taskDescription" rows="3" placeholder="Task Description"></textarea>
+            <select id="taskPriority">
+                <option value="Low">Low Priority</option>
+                <option value="Medium">Medium Priority</option>
+                <option value="High">High Priority</option>
+            </select>
+            <select id="taskStatus">
+                <option value="todo">To Do</option>
+                <option value="inprogress">In Progress</option>
+                <option value="completed">Completed</option>
+            </select>
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+                <button onclick="closeTaskModal()" style="padding: 8px 14px; border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; cursor: pointer;">Cancel</button>
+                <button onclick="saveTask()" class="btn-primary">Save Task</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            loadUserProfileData();
+        });
+
+        async function loadUserProfileData() {
+            try {
+                const res = await fetch(`${window.location.origin}/api/hr/current-user`);
+                if (res.ok) {
+                    const data = await res.json();
+                    const name = data.name || data.username || 'System Admin';
+                    document.getElementById('topbarUserName').innerText = name;
+                    
+                    const initials = name.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase() || 'SA';
+                    document.getElementById('topbarUserAvatar').innerText = initials;
+                }
+            } catch (e) {
+                console.log("Sidebar user sync complete.");
+            }
+        }
+
+        function openTaskModal() {
+            document.getElementById('taskModal').style.display = 'flex';
+        }
+
+        function closeTaskModal() {
+            document.getElementById('taskModal').style.display = 'none';
+            document.getElementById('taskTitle').value = '';
+            document.getElementById('taskDescription').value = '';
+        }
+
+        function saveTask() {
+            const title = document.getElementById('taskTitle').value.trim();
+            const desc = document.getElementById('taskDescription').value.trim();
+            const priority = document.getElementById('taskPriority').value;
+            const status = document.getElementById('taskStatus').value;
+
+            if (!title) {
+                alert('Please enter a task title');
+                return;
+            }
+
+            let badgeClass = 'priority-low';
+            if (priority === 'High') badgeClass = 'priority-high';
+            else if (priority === 'Medium') badgeClass = 'priority-med';
+
+            const cardHtml = `
+                <div class="task-card">
+                    <div class="task-card-header">
+                        <span class="task-title">${title}</span>
+                        <button class="btn-card-del" onclick="deleteTask(this, '${status}')"><i class="fa-solid fa-trash-can"></i></button>
+                    </div>
+                    <p class="task-desc">${desc || 'No description provided.'}</p>
+                    <div class="task-footer">
+                        <span class="priority-badge ${badgeClass}">${priority}</span>
+                        <span><i class="fa-regular fa-clock"></i> Just now</span>
+                    </div>
+                </div>
+            `;
+
+            const targetCol = document.querySelector(`#col-${status} .task-list`);
+            if (targetCol) {
+                targetCol.insertAdjacentHTML('afterbegin', cardHtml);
+                updateBadgeCount(status);
+            }
+
+            closeTaskModal();
+        }
+
+        function deleteTask(btnElement, status) {
+            const card = btnElement.closest('.task-card');
+            if (card) {
+                card.remove();
+                updateBadgeCount(status);
+            }
+        }
+
+        function updateBadgeCount(status) {
+            const list = document.querySelector(`#col-${status} .task-list`);
+            const badge = document.getElementById(`badge-${status}`);
+            if (list && badge) {
+                badge.innerText = list.children.length;
+            }
+        }
+
+        function filterTasks() {
+            const query = document.getElementById('taskSearchInput').value.toLowerCase();
+            document.querySelectorAll('.task-card').forEach(card => {
+                const text = card.innerText.toLowerCase();
+                card.style.display = text.includes(query) ? 'flex' : 'none';
+            });
+        }
+    </script>
+</body>
+</html>
+</html>

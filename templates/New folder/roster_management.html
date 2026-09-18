@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roster Management - Radha HIMS</title>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; }
+        body { background-color: #f8fafc; color: #2d3748; display: flex; height: 100vh; overflow: hidden; }
+
+        /* AUTO-HOVER COLLAPSIBLE SIDEBAR */
+        .sidebar { 
+            position: fixed; top: 0; left: 0; height: 100vh; width: 65px; 
+            background: #ffffff; border-right: 1px solid #e2e8f0; 
+            display: flex; flex-direction: column; justify-content: space-between; 
+            flex-shrink: 0; transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            z-index: 900; overflow: hidden; box-shadow: 2px 0 8px rgba(0,0,0,0.03);
+        }
+        .sidebar:hover { width: 240px; box-shadow: 6px 0 20px rgba(0,0,0,0.12); z-index: 1200; }
+        .sidebar-brand { height: 60px; padding: 0 18px; font-size: 1.1rem; font-weight: bold; color: #1a365d; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid #f0f4f8; cursor: pointer; position: relative; }
+        .sidebar-brand i { font-size: 1.3rem; min-width: 28px; text-align: center; }
+        .nav-menu { list-style: none; padding: 15px 8px; overflow-y: auto; overflow-x: hidden; flex: 1; }
+        .nav-item { margin-bottom: 4px; }
+        .nav-link { display: flex; align-items: center; gap: 15px; padding: 11px 12px; text-decoration: none; color: #4a5568; font-size: 0.9rem; font-weight: 500; border-radius: 8px; transition: all 0.2s ease; cursor: pointer; }
+        .nav-link:hover, .nav-link.active { background-color: #ebf8ff; color: #2b6cb0; font-weight: 600; }
+        .nav-link i { font-size: 1.15rem; min-width: 26px; text-align: center; }
+        .sidebar span { opacity: 0; white-space: nowrap; transition: opacity 0.2s ease; }
+        .sidebar:hover span { opacity: 1; }
+
+        /* MAIN WRAPPER */
+        .main-wrapper { flex: 1; margin-left: 65px; display: flex; flex-direction: column; overflow-y: auto; height: 100vh; position: relative; z-index: 100; }
+
+        /* TOP HEADER */
+        .top-header { height: 60px; background: #ffffff; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; padding: 0 25px; flex-shrink: 0; }
+        .search-bar { position: relative; width: 380px; }
+        .search-bar input { width: 100%; padding: 8px 12px 8px 36px; border: 1px solid #e2e8f0; border-radius: 20px; background: #f8fafc; font-size: 0.88rem; outline: none; }
+        .search-bar i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #a0aec0; }
+
+        .user-profile { display: flex; align-items: center; gap: 12px; }
+        .user-avatar { width: 36px; height: 36px; border-radius: 50%; background: #3182ce; color: white; font-weight: bold; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; }
+
+        /* PAGE HEADER ROW */
+        .content-area { padding: 20px 25px; flex: 1; }
+        .roster-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .page-title { font-size: 1.4rem; font-weight: 700; color: #1a202c; }
+
+        .header-actions { display: flex; align-items: center; gap: 15px; }
+        .date-range-picker { display: flex; align-items: center; gap: 10px; background: #ffffff; border: 1px solid #cbd5e0; border-radius: 8px; padding: 6px 14px; font-weight: 600; font-size: 0.9rem; color: #2d3748; }
+        .date-nav-btn { background: none; border: none; cursor: pointer; color: #718096; padding: 2px 6px; border-radius: 4px; }
+        .date-nav-btn:hover { background: #edf2f7; color: #2b6cb0; }
+
+        .filter-row { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; }
+        .staff-search-input { width: 260px; padding: 8px 14px; border: 1px solid #cbd5e0; border-radius: 8px; outline: none; font-size: 0.88rem; background: #ffffff; }
+        .btn-filter { background: #ffffff; border: 1px solid #cbd5e0; padding: 8px 16px; border-radius: 8px; font-size: 0.88rem; font-weight: 600; color: #4a5568; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+
+        /* ROSTER MATRIX TABLE */
+        .roster-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow-x: auto; box-shadow: 0 2px 6px rgba(0,0,0,0.02); }
+        .roster-table { width: 100%; border-collapse: collapse; text-align: center; }
+        
+        .roster-table th, .roster-table td { border: 1px solid #edf2f7; padding: 12px 8px; }
+        .roster-table th { background: #ffffff; font-size: 0.85rem; font-weight: 700; color: #4a5568; text-transform: uppercase; }
+        
+        .day-header.today { background: #f7fafc; }
+        .day-badge { display: inline-block; background: #3182ce; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; margin-left: 4px; }
+
+        .staff-col { width: 220px; text-align: left; padding-left: 15px !important; background: #ffffff; }
+        .staff-name-text { font-weight: 700; font-size: 0.92rem; color: #1a202c; }
+        .staff-sub-text { font-size: 0.78rem; color: #a0aec0; margin-top: 2px; }
+
+        .shift-cell { position: relative; height: 75px; vertical-align: middle; transition: background 0.15s; cursor: pointer; user-select: none; }
+        .shift-cell:hover { background-color: #f7fafc; }
+
+        .add-shift-btn { width: 32px; height: 32px; border-radius: 50%; border: 1px dashed #cbd5e0; background: #ffffff; color: #3182ce; font-size: 1rem; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
+        .shift-cell:hover .add-shift-btn { border-color: #3182ce; background: #ebf8ff; transform: scale(1.1); }
+
+        .shift-pill { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6px; border-radius: 6px; font-size: 0.78rem; font-weight: 700; gap: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .shift-morning { background: #e6fffa; color: #234e52; border: 1px solid #b2f5ea; }
+        .shift-evening { background: #feebc8; color: #744210; border: 1px solid #fbd38d; }
+        .shift-night { background: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe; }
+        .shift-off { background: #edf2f7; color: #718096; border: 1px solid #e2e8f0; }
+
+        /* ASSIGN SHIFT MODAL */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 99999; justify-content: center; align-items: center; }
+        .modal-card { background: white; border-radius: 12px; padding: 22px; width: 100%; max-width: 380px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative; z-index: 100000; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #edf2f7; padding-bottom: 10px; }
+        .modal-title { font-size: 1rem; font-weight: bold; color: #1a202c; }
+        .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #a0aec0; line-height: 1; }
+
+        .shift-option-btn { width: 100%; text-align: left; padding: 12px; margin-bottom: 8px; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff; cursor: pointer; font-weight: 600; font-size: 0.88rem; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
+        .shift-option-btn:hover { border-color: #3182ce; background: #ebf8ff; color: #2b6cb0; }
+    </style>
+</head>
+<body>
+
+    <!-- 1. LEFT SIDEBAR NAVIGATION -->
+    <div class="sidebar">
+        <div>
+            <!-- 🎯 Dynamic Branch Dropdown & Icon Integration -->
+            <div class="sidebar-brand" onclick="toggleBranchDropdown(event)" style="position: relative;">
+                <div style="display: flex; align-items: center; gap: 12px; overflow: hidden; width: 100%;">
+                    <div id="topBranchIcon" style="width: 32px; height: 32px; background: #3182ce; color: white; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.85rem; flex-shrink: 0;">MB</div>
+                    <span id="topBranchName" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 1rem; opacity: 1 !important;">Main Branch</span>
+                </div>
+                <div id="branchDropdownList" style="display: none; position: absolute; top: 60px; left: 0; width: 220px; background: white; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 9999; padding: 6px;"></div>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item"><a href="/hr" class="nav-link"><i class="fa-solid fa-chart-pie"></i> <span>Dashboard</span></a></li>
+                <li class="nav-item"><a href="/hr/add-staff" class="nav-link"><i class="fa-solid fa-users"></i> <span>Staff</span></a></li>
+                <li class="nav-item"><a href="/hr/attendance-portal" class="nav-link"><i class="fa-solid fa-user-check"></i> <span>Attendance</span></a></li>
+                <li class="nav-item"><a href="/hr/roster" class="nav-link active"><i class="fa-solid fa-calendar-days"></i> <span>Roster</span></a></li>
+                <li class="nav-item"><a href="/hr/geo" class="nav-link"><i class="fa-solid fa-location-dot"></i> <span>Geo</span></a></li>
+                <li class="nav-item"><a href="/hr/taskman" class="nav-link"><i class="fa-solid fa-clipboard-check"></i> <span>Taskman</span></a></li>
+                <li class="nav-item"><a href="/hr/reports" class="nav-link"><i class="fa-solid fa-chart-column"></i> <span>Reports</span></a></li>
+                <li class="nav-item"><a href="/hr/payments" class="nav-link"><i class="fa-solid fa-credit-card"></i> <span>Payments</span></a></li>
+                <li class="nav-item"><a href="/hr/payroll" class="nav-link"><i class="fa-solid fa-hand-holding-dollar"></i> <span>Payroll</span></a></li>
+                <li class="nav-item"><a href="/hr/others" class="nav-link"><i class="fa-solid fa-cubes"></i> <span>Others</span></a></li>
+                <li class="nav-item" style="border-top: 1px solid #edf2f7; margin-top: 10px; padding-top: 10px;"><a href="#" class="nav-link"><i class="fa-solid fa-circle-question"></i> <span>Help</span></a></li>
+                <li class="nav-item"><a href="#" class="nav-link"><i class="fa-solid fa-gear"></i> <span>Settings</span></a></li>
+                <li class="nav-item"><a href="/" class="nav-link" style="color: #e53e3e;"><i class="fa-solid fa-right-from-bracket"></i> <span>Exit Portal</span></a></li>
+            </ul>
+        </div>
+        <div style="padding: 15px; font-size: 0.75rem; color: #a0aec0; border-top: 1px solid #edf2f7;">
+            <span id="branchNameFooter">Loading Branch...</span>
+        </div>
+    </div>
+
+    <!-- 2. MAIN CONTENT WRAPPER -->
+    <div class="main-wrapper">
+        <div class="top-header">
+            <div class="search-bar">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" placeholder="Search staff or shift... (Ctrl+K)">
+            </div>
+            <div class="user-profile">
+                <span style="font-weight: 600; font-size: 0.9rem;" id="userNameDisplay">System Admin</span>
+                <div class="user-avatar" id="userAvatarText">SA</div>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <div class="roster-header">
+                <h1 class="page-title">Roster Management</h1>
+                <div class="header-actions">
+                    <div class="date-range-picker">
+                        <button class="date-nav-btn" onclick="changeWeek(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+                        <span id="dateRangeLabel">Loading week...</span>
+                        <button class="date-nav-btn" onclick="changeWeek(1)"><i class="fa-solid fa-chevron-right"></i></button>
+                        <!-- 🎯 Interactive Calendar Icon -->
+                        <div style="position: relative; display: inline-flex; align-items: center; cursor: pointer;" onclick="openRosterDatePicker()">
+                            <i class="fa-regular fa-calendar-days" style="color: #3182ce; margin-left: 5px;" title="Select Date"></i>
+                            <input type="date" id="rosterDatePicker" style="position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none;" onchange="selectRosterDate(this.value)">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEARCH & FILTER ROW -->
+            <div class="filter-row">
+                <input type="text" class="staff-search-input" id="rosterSearch" onkeyup="filterRosterTable()" placeholder="Search by name or staff ID">
+                <button class="btn-filter"><i class="fa-solid fa-filter"></i> Filter</button>
+            </div>
+
+            <!-- ROSTER MATRIX TABLE -->
+            <div class="roster-card">
+                <table class="roster-table">
+                    <thead id="rosterTableHead">
+                        <!-- Dynamic week headers will load here -->
+                    </thead>
+                    <tbody id="rosterTableBody">
+                        <tr><td colspan="8" style="padding: 30px; color: #a0aec0;">Loading live roster records from database...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- SHIFT ASSIGNMENT MODAL POPUP -->
+    <div class="modal-overlay" id="shiftModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title" id="modalRosterTitle">Assign Shift</div>
+                <button class="close-btn" onclick="closeShiftModal()">&times;</button>
+            </div>
+            
+            <p style="font-size: 0.82rem; color: #718096; margin-bottom: 12px;">Select shift for <b id="targetStaffName">Staff</b> on <b id="targetShiftDate">Date</b>:</p>
+
+            <button type="button" class="shift-option-btn" onclick="applyShiftSelection('Morning')">
+                <span>Morning Shift</span>
+                <small style="color: #38a169;">08:00 AM - 04:00 PM</small>
+            </button>
+            <button type="button" class="shift-option-btn" onclick="applyShiftSelection('Evening')">
+                <span>Evening Shift</span>
+                <small style="color: #d69e2e;">02:00 PM - 10:00 PM</small>
+            </button>
+            <button type="button" class="shift-option-btn" onclick="applyShiftSelection('Night')">
+                <span>Night Shift</span>
+                <small style="color: #3182ce;">10:00 PM - 06:00 AM</small>
+            </button>
+            <button type="button" class="shift-option-btn" onclick="applyShiftSelection('Weekly Off')" style="border-color: #cbd5e0; background: #f7fafc;">
+                <span style="color: #e53e3e;">Weekly Off</span>
+                <small style="color: #a0aec0;">OFF</small>
+            </button>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        const API_BASE = `${window.location.origin}/api/hr`;
+        let activeTargetCell = null;
+        let activeEmpCode = null;
+        let activeShiftDate = null;
+
+        function getStartOfWeek(date) {
+            const d = new Date(date);
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Monday as start
+            return new Date(d.setDate(diff));
+        }
+
+        let weekStart = getStartOfWeek(new Date());
+
+        async function initRoster() {
+            await loadHeaderMetaData(); // 👈 Database se live branch name & dropdown load karne ke liye
+            await loadUserData(); // 👈 Database se logged-in user profile load karne ke liye
+            generateWeekHeaders();
+            await loadLiveRosterData();
+        }
+
+        async function loadHeaderMetaData() {
+            try {
+                const res = await fetch(`${API_BASE}/branches`);
+                const branchData = await res.json();
+                const branches = branchData.branches || [];
+
+                if (branches.length > 0) {
+                    let activeBranchId = localStorage.getItem('active_branch_id') || branches[0].id;
+                    let activeBranch = branches.find(b => String(b.id) === String(activeBranchId)) || branches[0];
+
+                    document.getElementById('topBranchName').innerText = activeBranch.name;
+                    document.getElementById('branchNameFooter').innerText = activeBranch.name;
+                    const initials = activeBranch.name.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase() || 'MB';
+                    document.getElementById('topBranchIcon').innerText = initials;
+
+                    const dropdownList = document.getElementById('branchDropdownList');
+                    if (dropdownList) {
+                        dropdownList.innerHTML = '';
+                        branches.forEach(b => {
+                            dropdownList.innerHTML += `
+                                <div onclick="switchActiveBranch('${b.id}', '${b.name.replace(/'/g, "\\'")}')" style="padding: 10px 12px; font-size: 0.85rem; font-weight: 600; color: #334155; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: 0.15s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">
+                                    <span>${b.name}</span>
+                                    ${String(b.id) === String(activeBranch.id) ? '<i class="fa-solid fa-check" style="color: #2563eb;"></i>' : ''}
+                                </div>
+                            `;
+                        });
+                    }
+                }
+            } catch (e) {
+                document.getElementById('topBranchName').innerText = 'Main Branch';
+                document.getElementById('branchNameFooter').innerText = 'Main Branch';
+                document.getElementById('topBranchIcon').innerText = 'MB';
+            }
+        }
+
+        function toggleBranchDropdown(e) {
+            e.stopPropagation();
+            const dd = document.getElementById('branchDropdownList');
+            if (dd) {
+                dd.style.display = dd.style.display === 'block' ? 'none' : 'block';
+            }
+        }
+
+        function switchActiveBranch(branchId, branchName) {
+            localStorage.setItem('active_branch_id', branchId);
+            localStorage.setItem('active_branch_name', branchName);
+            window.location.reload();
+        }
+
+        window.addEventListener('click', () => {
+            const dd = document.getElementById('branchDropdownList');
+            if (dd) dd.style.display = 'none';
+        });
+
+        async function loadUserData() {
+            try {
+                const userRes = await fetch(`${API_BASE}/current-user`);
+                if (userRes.ok) {
+                    const userData = await userRes.json();
+                    const fullName = userData.name || userData.username || 'System Admin';
+                    document.getElementById('userNameDisplay').innerText = fullName;
+                    const userInitials = fullName.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase() || 'SA';
+                    document.getElementById('userAvatarText').innerText = userInitials;
+                }
+            } catch (err) {}
+        }
+
+        function generateWeekHeaders() {
+            const thead = document.getElementById('rosterTableHead');
+            const rangeLabel = document.getElementById('dateRangeLabel');
+            
+            let headersHtml = `<tr><th class="staff-col"><input type="checkbox" style="margin-right: 8px;"> All Staff</th>`;
+            
+            let currentDay = new Date(weekStart);
+            let endDay = new Date(weekStart);
+            endDay.setDate(endDay.getDate() + 6);
+
+            const options = { day: '2-digit', month: 'short', year: 'numeric' };
+            rangeLabel.innerText = `${currentDay.toLocaleDateString('en-GB', options)} - ${endDay.toLocaleDateString('en-GB', options)}`;
+
+            for (let i = 0; i < 7; i++) {
+                const dayName = currentDay.toLocaleDateString('en-US', { weekday: 'long' });
+                const dayNum = currentDay.getDate();
+                const isToday = currentDay.toDateString() === new Date().toDateString();
+
+                headersHtml += `<th class="day-header ${isToday ? 'today' : ''}">${dayName} <span class="day-badge">${dayNum}</span></th>`;
+                currentDay.setDate(currentDay.getDate() + 1);
+            }
+
+            headersHtml += `</tr>`;
+            thead.innerHTML = headersHtml;
+        }
+
+        function changeWeek(dir) {
+            weekStart.setDate(weekStart.getDate() + (dir * 7));
+            initRoster();
+        }
+
+        function openRosterDatePicker() {
+            const picker = document.getElementById('rosterDatePicker');
+            if (picker) {
+                picker.value = weekStart.toISOString().split('T')[0];
+                if (typeof picker.showPicker === 'function') {
+                    picker.showPicker();
+                } else {
+                    picker.click();
+                }
+            }
+        }
+
+        function selectRosterDate(val) {
+            if (val) {
+                weekStart = getStartOfWeek(new Date(val));
+                initRoster();
+            }
+        }
+
+        async function loadLiveRosterData() {
+            try {
+                const activeBranchId = localStorage.getItem('active_branch_id');
+
+                const [empRes, rosterRes] = await Promise.all([
+                    fetch(`${API_BASE}/employees`),
+                    fetch(`${API_BASE}/roster-records`)
+                ]);
+
+                const empData = await empRes.json();
+                const rosterData = rosterRes.ok ? await rosterRes.json() : { data: [] };
+
+                let empList = empData.employees || empData.data || [];
+                const rosterRecords = rosterData.data || rosterData.records || [];
+
+                // 🎯 Filter staff by active branch ID
+                if (activeBranchId) {
+                    empList = empList.filter(emp => {
+                        const empBranch = emp.Fk_BranchID || emp.branch_id || emp.BranchID || 1;
+                        return String(empBranch) === String(activeBranchId);
+                    });
+                }
+
+                const tbody = document.getElementById('rosterTableBody');
+                if (!tbody) return;
+                tbody.innerHTML = '';
+
+                if (empList.length > 0) {
+                    empList.forEach((emp, index) => {
+                        const name = emp.emp_name || emp.FullName || 'Staff Member';
+                        const code = emp.emp_code || emp.EmployeeCode || `EMP${index+1}`;
+                        const dept = emp.department || 'General';
+
+                        let rowHtml = `
+                            <tr class="roster-row" data-name="${name.toLowerCase()}" data-code="${code.toLowerCase()}">
+                                <td class="staff-col">
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <input type="checkbox">
+                                        <div>
+                                            <div class="staff-name-text">${name}</div>
+                                            <div class="staff-sub-text">${code} &bull; ${dept}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                        `;
+
+                        let loopDate = new Date(weekStart);
+                        for (let i = 0; i < 7; i++) {
+                            const y = loopDate.getFullYear();
+                            const m = String(loopDate.getMonth() + 1).padStart(2, '0');
+                            const d = String(loopDate.getDate()).padStart(2, '0');
+                            const dateStr = `${y}-${m}-${d}`;
+                            const displayDate = `${d} ${loopDate.toLocaleString('default', { month: 'short' })} ${y}`;
+
+                            let assignedShift = null;
+                            rosterRecords.forEach(rec => {
+                                const recEmp = rec.Fk_EmployeeID || rec.emp_id || rec.emp_code;
+                                const recDate = (rec.RosterDate || rec.date || '').split('T')[0];
+                                if (String(recEmp) === String(code) && recDate === dateStr) {
+                                    assignedShift = rec.ShiftType || rec.shift_type;
+                                }
+                            });
+
+                            let cellInner = `<div class="add-shift-btn"><i class="fa-solid fa-plus"></i></div>`;
+                            if (assignedShift) {
+                                cellInner = getShiftPillHtml(assignedShift);
+                            }
+
+                            rowHtml += `
+                                <td class="shift-cell" onclick="openShiftModal(this, '${name.replace(/'/g, "\\'")}', '${code}', '${dateStr}', '${displayDate}')">
+                                    ${cellInner}
+                                </td>
+                            `;
+
+                            loopDate.setDate(loopDate.getDate() + 1);
+                        }
+
+                        rowHtml += `</tr>`;
+                        tbody.innerHTML += rowHtml;
+                    });
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="8" style="padding: 20px; text-align: center;">No active staff records found for this branch.</td></tr>`;
+                }
+            } catch (err) {
+                console.error("Roster Grid Live Load Error:", err);
+                document.getElementById('rosterTableBody').innerHTML = `<tr><td colspan="8" style="padding: 20px; color: #e53e3e; text-align: center;">Failed to connect to database.</td></tr>`;
+            }
+        }
+
+        function getShiftPillHtml(shiftType) {
+            if (shiftType === 'Morning') return `<div class="shift-pill shift-morning"><span>Morning</span><small>08:00 - 16:00</small></div>`;
+            if (shiftType === 'Evening') return `<div class="shift-pill shift-evening"><span>Evening</span><small>14:00 - 22:00</small></div>`;
+            if (shiftType === 'Night') return `<div class="shift-pill shift-night"><span>Night</span><small>22:00 - 06:00</small></div>`;
+            return `<div class="shift-pill shift-off"><span>OFF</span><small>Weekly Off</small></div>`;
+        }
+
+        function openShiftModal(cell, staffName, empCode, fullDate, displayDateText) {
+            activeTargetCell = cell;
+            activeEmpCode = empCode;
+            activeShiftDate = fullDate;
+
+            document.getElementById('targetStaffName').innerText = staffName;
+            document.getElementById('targetShiftDate').innerText = displayDateText;
+            document.getElementById('shiftModal').style.display = 'flex';
+        }
+
+        function closeShiftModal() {
+            document.getElementById('shiftModal').style.display = 'none';
+        }
+
+        async function applyShiftSelection(shiftType) {
+            if (!activeTargetCell) return;
+
+            activeTargetCell.innerHTML = getShiftPillHtml(shiftType);
+
+            try {
+                await fetch(`${API_BASE}/assign-roster-shift`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        emp_id: activeEmpCode,
+                        roster_date: activeShiftDate,
+                        shift_type: shiftType
+                    })
+                });
+            } catch (err) {
+                console.error("Shift Assignment Save Error:", err);
+            }
+
+            closeShiftModal();
+        }
+
+        function filterRosterTable() {
+            const query = document.getElementById('rosterSearch').value.toLowerCase().trim();
+            const rows = document.querySelectorAll('.roster-row');
+
+            rows.forEach(row => {
+                const name = row.getAttribute('data-name') || '';
+                const code = row.getAttribute('data-code') || '';
+                row.style.display = (name.includes(query) || code.includes(query)) ? '' : 'none';
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', initRoster);
+    </script>
+</body>
+</html>

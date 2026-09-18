@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leave Policy - Radha HIMS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: #f8fafc; color: #1e293b; display: flex; height: 100vh; overflow: hidden; }
+
+        .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow-y: auto; height: 100vh; background: #f8fafc; min-width: 0; }
+
+        /* Top Navigation Header */
+        .top-header { height: 60px; background: #ffffff; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; position: sticky; top: 0; z-index: 100; flex-shrink: 0; }
+        .global-search { position: relative; width: 420px; }
+        .global-search input { width: 100%; padding: 8px 12px 8px 36px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.88rem; outline: none; background: #ffffff; }
+        .global-search i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
+        .kbd-badge { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 4px; padding: 1px 5px; font-size: 0.68rem; color: #64748b; }
+
+        .header-right { display: flex; align-items: center; gap: 18px; }
+        .user-profile { display: flex; align-items: center; gap: 10px; }
+        .user-name-tag { font-weight: 600; font-size: 0.9rem; color: #334155; }
+        .user-avatar { width: 34px; height: 34px; background: #2563eb; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: bold; }
+
+        /* Page Content Body */
+        .content-body { padding: 28px 36px 60px 36px; flex: 1; max-width: 1100px; margin: 0 auto; width: 100%; }
+        
+        .back-link { display: inline-flex; align-items: center; gap: 8px; text-decoration: none; color: #2563eb; font-weight: 600; font-size: 0.9rem; margin-bottom: 18px; cursor: pointer; }
+        
+        .page-banner-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
+        .banner-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
+        .page-title { font-size: 1.35rem; font-weight: 700; color: #0f172a; margin-bottom: 4px; }
+        .page-subtitle { font-size: 0.88rem; color: #64748b; }
+
+        .btn-primary-blue { background: #2563eb; color: #ffffff; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; transition: 0.15s; }
+        .btn-primary-blue:hover { background: #1d4ed8; }
+
+        /* Leave Item Box */
+        .leave-item-box { border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px 22px; display: flex; justify-content: space-between; align-items: center; background: #fff; transition: 0.15s; margin-bottom: 12px; }
+        .leave-item-box:hover { border-color: #cbd5e1; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); }
+        .leave-name { font-size: 1rem; font-weight: 700; color: #0f172a; margin-bottom: 6px; }
+        .leave-meta { font-size: 0.8rem; color: #64748b; }
+        .leave-meta b { color: #334155; }
+
+        .leave-actions-btn { background: none; border: none; font-size: 1.1rem; color: #64748b; cursor: pointer; padding: 6px 10px; border-radius: 6px; }
+        .leave-actions-btn:hover { background: #f1f5f9; color: #0f172a; }
+
+        .form-input-box { width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem; outline: none; background: #fff; color: #1e293b; margin-top: 6px; }
+        .form-input-box:focus { border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15); }
+        
+        .checkbox-row { display: flex; align-items: center; gap: 10px; margin-top: 15px; cursor: pointer; }
+        .checkbox-row input { width: 18px; height: 18px; accent-color: #2563eb; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <!-- Centralized Sidebar Include -->
+    {% include 'sidebar.html' %}
+
+    <div class="main-wrapper">
+        <div class="top-header">
+            <div class="global-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" placeholder="Search...">
+                <span class="kbd-badge">Ctrl+K</span>
+            </div>
+            
+            <div class="header-right">
+                <button class="h-icon" onclick="alert('No new notifications')"><i class="fa-regular fa-bell"></i></button>
+                <div class="user-profile">
+                    <span class="user-name-tag" id="topbarUserName">Loading...</span>
+                    <div class="user-avatar" id="topbarUserAvatar">--</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-body">
+            
+            <!-- VIEW A: LEAVE POLICIES LIST -->
+            <div id="leaveListView">
+                <a href="/hr/settings" class="back-link"><i class="fa-solid fa-arrow-left"></i> back to Settings</a>
+
+                <div class="page-banner-card">
+                    <div class="banner-top">
+                        <div>
+                            <h1 class="page-title">Leave Policy</h1>
+                            <p class="page-subtitle">Configure leave types, maximum allowed days per year, and paid/unpaid rules</p>
+                        </div>
+                        <button class="btn-primary-blue" onclick="openLeaveEditor(null)"><i class="fa-solid fa-plus"></i> New Leave Policy</button>
+                    </div>
+
+                    <div id="leaveListContainer">
+                        <div style="text-align: center; padding: 30px; color: #94a3b8;">Loading leave policies from database...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW B: LEAVE EDITOR FORM -->
+            <div id="leaveEditorView" style="display: none;">
+                <div class="back-link" onclick="closeLeaveEditor()"><i class="fa-solid fa-arrow-left"></i> back</div>
+
+                <div class="page-banner-card">
+                    <h1 class="page-title">Leave Policy Configuration</h1>
+                    <p class="page-subtitle" style="margin-bottom: 24px;">Manage details for `tblLeaveType`</p>
+
+                    <form id="leavePolicyForm" onsubmit="saveLeaveData(event)">
+                        <input type="hidden" id="leaveId">
+                        
+                        <div style="margin-bottom: 20px;">
+                            <label style="font-size: 0.88rem; font-weight: 600; color: #475569;">Leave Name <span style="color:#dc2626;">*</span></label>
+                            <input type="text" id="leaveName" class="form-input-box" required placeholder="e.g. Casual Leave, Medical Leave">
+                        </div>
+
+                        <div style="margin-bottom: 20px;">
+                            <label style="font-size: 0.88rem; font-weight: 600; color: #475569;">Max Days Per Year <span style="color:#dc2626;">*</span></label>
+                            <input type="number" id="maxDays" class="form-input-box" required placeholder="e.g. 12" min="0">
+                        </div>
+
+                        <label class="checkbox-row">
+                            <input type="checkbox" id="chkIsPaid" checked>
+                            <span style="font-size: 0.9rem; font-weight: 600; color: #1e293b;">Is Paid Leave?</span>
+                        </label>
+
+                        <label class="checkbox-row">
+                            <input type="checkbox" id="chkIsActive" checked>
+                            <span style="font-size: 0.9rem; font-weight: 600; color: #1e293b;">Is Active</span>
+                        </label>
+
+                        <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 30px;">
+                            <button type="button" class="btn-primary-blue" style="background:#fff; color:#64748b; border:1px solid #cbd5e1;" onclick="closeLeaveEditor()">Cancel</button>
+                            <button type="submit" class="btn-primary-blue" id="btnSaveLeave"><i class="fa-solid fa-check"></i> Save Leave Policy</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const HR_API = `${window.location.origin}/api/hr`;
+        let activeLeaveList = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCurrentUser();
+            fetchLeavePoliciesFromDB();
+        });
+
+        async function loadCurrentUser() {
+            try {
+                const res = await fetch(`${HR_API}/current-user`);
+                if (res.ok) {
+                    const data = await res.json();
+                    const name = data.name || data.username || 'Admin User';
+                    document.getElementById('topbarUserName').innerText = name;
+                    document.getElementById('topbarUserAvatar').innerText = name.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase() || 'SA';
+                }
+            } catch (e) {}
+        }
+
+        async function fetchLeavePoliciesFromDB() {
+            const container = document.getElementById('leaveListContainer');
+            try {
+                const res = await fetch(`${HR_API}/leave-policies`);
+                const data = await res.json();
+
+                if (data.success && data.policies) {
+                    activeLeaveList = data.policies;
+                    if (activeLeaveList.length > 0) {
+                        container.innerHTML = '';
+                        activeLeaveList.forEach(l => {
+                            container.innerHTML += `
+                                <div class="leave-item-box">
+                                    <div>
+                                        <div class="leave-name">${l.name || 'Leave'}</div>
+                                        <div class="leave-meta">Max Days: <b>${l.max_days || 0} / year</b> | Type: <b>${l.is_paid ? 'Paid' : 'Unpaid'}</b> | Status: <b>${l.is_active ? 'Active' : 'Inactive'}</b></div>
+                                    </div>
+                                    <button class="leave-actions-btn" onclick="openLeaveEditor('${l.id}')"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+                                </div>
+                            `;
+                        });
+                    } else {
+                        container.innerHTML = `<div style="text-align: center; padding: 30px; color: #94a3b8;">No leave policies found in database. Click 'New Leave Policy' to create one.</div>`;
+                    }
+                }
+            } catch (err) {
+                container.innerHTML = `<div style="text-align: center; padding: 30px; color: #dc2626;">Error loading leave policies from database.</div>`;
+            }
+        }
+
+        function openLeaveEditor(leaveId) {
+            document.getElementById('leaveListView').style.display = 'none';
+            document.getElementById('leaveEditorView').style.display = 'block';
+
+            if (leaveId) {
+                const leave = activeLeaveList.find(l => String(l.id) === String(leaveId));
+                if (leave) {
+                    document.getElementById('leaveId').value = leave.id;
+                    document.getElementById('leaveName').value = leave.name || '';
+                    document.getElementById('maxDays').value = leave.max_days || 0;
+                    document.getElementById('chkIsPaid').checked = !!leave.is_paid;
+                    document.getElementById('chkIsActive').checked = !!leave.is_active;
+                }
+            } else {
+                document.getElementById('leaveId').value = '';
+                document.getElementById('leaveName').value = '';
+                document.getElementById('maxDays').value = '';
+                document.getElementById('chkIsPaid').checked = true;
+                document.getElementById('chkIsActive').checked = true;
+            }
+        }
+
+        function closeLeaveEditor() {
+            document.getElementById('leaveEditorView').style.display = 'none';
+            document.getElementById('leaveListView').style.display = 'block';
+            fetchLeavePoliciesFromDB();
+        }
+
+        async function saveLeaveData(e) {
+            e.preventDefault();
+            const leaveId = document.getElementById('leaveId').value;
+
+            const payload = {
+                id: leaveId || null,
+                name: document.getElementById('leaveName').value.trim(),
+                max_days: document.getElementById('maxDays').value,
+                is_paid: document.getElementById('chkIsPaid').checked,
+                is_active: document.getElementById('chkIsActive').checked
+            };
+
+            const btn = document.getElementById('btnSaveLeave');
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Saving...`;
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`${HR_API}/leave-policies/save`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await res.json();
+                if (res.ok && result.success) {
+                    alert("Leave policy saved to SSMS database successfully!");
+                    closeLeaveEditor();
+                } else {
+                    alert(`Error: ${result.error || 'Server error'}`);
+                }
+            } catch (err) {
+                alert("Network error while saving leave policy.");
+            } finally {
+                btn.innerHTML = `<i class="fa-solid fa-check"></i> Save Leave Policy`;
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>

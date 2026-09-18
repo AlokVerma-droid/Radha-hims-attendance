@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kiosk Setup - Radha HIMS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+        
+        body { background-color: #ffffff; color: #1e293b; display: flex; flex-direction: column; justify-content: space-between; min-height: 100vh; padding: 20px; max-width: 480px; margin: 0 auto; overflow-y: auto; }
+        
+        .container { width: 100%; margin-top: 10px; padding-bottom: 20px; flex: 1; }
+        .title { font-size: 1.6rem; font-weight: 700; color: #0f172a; margin-bottom: 6px; }
+        .subtitle { font-size: 0.9rem; color: #64748b; margin-bottom: 20px; line-height: 1.4; }
+        
+        .input-row { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+        .country-box { display: flex; align-items: center; gap: 6px; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; font-weight: 600; font-size: 1rem; color: #334155; }
+        .phone-box { flex: 1; border-bottom: 1px solid #94a3b8; padding: 10px 4px; display: flex; align-items: center; }
+        .phone-box input { width: 100%; border: none; outline: none; font-size: 1.1rem; color: #0f172a; background: transparent; }
+        .phone-box input::placeholder { color: #94a3b8; }
+        
+        .otp-box { border-bottom: 1px solid #94a3b8; padding: 10px 4px; font-size: 1.2rem; letter-spacing: 8px; text-align: center; width: 100%; outline: none; border: none; border-bottom: 2px solid #2563eb; }
+
+        .search-container { position: relative; margin-bottom: 14px; }
+        .search-container i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
+        .search-container input { width: 100%; padding: 10px 14px 10px 40px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem; outline: none; }
+        
+        .business-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; max-height: 50vh; overflow-y: auto; padding-right: 4px; }
+        .business-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; cursor: pointer; transition: border-color 0.2s; }
+        .business-item:hover { border-color: #2563eb; }
+        .business-left { display: flex; align-items: center; gap: 12px; }
+        .business-left input[type="radio"] { width: 18px; height: 18px; accent-color: #2563eb; cursor: pointer; }
+        .business-name { font-size: 0.95rem; font-weight: 600; color: #0f172a; }
+        .lo-badge { background: #f3e8ff; color: #7c3aed; font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: 4px; }
+
+        .expand-btn { width: 100%; background: #f1f5f9; border: 1px solid #cbd5e1; color: #2563eb; padding: 10px; border-radius: 20px; font-weight: 600; font-size: 0.9rem; cursor: pointer; margin-bottom: 10px; text-align: center; }
+
+        .device-card { border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.03); margin-top: 10px; }
+        .device-branch-title { font-size: 1.1rem; font-weight: 700; color: #0f172a; margin-bottom: 16px; }
+        .android-id-box { display: flex; align-items: center; gap: 12px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 14px; border-radius: 12px; margin-bottom: 20px; }
+        .android-icon { width: 40px; height: 40px; background: #e0f2fe; color: #0284c7; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+        .android-details span { font-size: 0.75rem; color: #64748b; font-weight: 600; display: block; }
+        .android-details strong { font-size: 0.9rem; color: #0f172a; }
+        .device-name-input { width: 100%; border: none; border-bottom: 1px solid #cbd5e1; padding: 10px 4px; font-size: 1rem; color: #0f172a; outline: none; background: transparent; }
+        .device-name-input::placeholder { color: #94a3b8; }
+
+        .terms { font-size: 0.85rem; color: #64748b; margin-top: 10px; }
+        .terms a { color: #2563eb; text-decoration: underline; font-weight: 500; }
+
+        .footer-section { width: 100%; padding-top: 10px; padding-bottom: 10px; background: #fff; position: sticky; bottom: 0; }
+        .btn-continue { width: 100%; background: #e2e8f0; color: #94a3b8; border: none; padding: 14px; border-radius: 8px; font-weight: 600; font-size: 1rem; cursor: not-allowed; transition: all 0.2s; }
+        .btn-continue.active { background: #2563eb; color: white; cursor: pointer; }
+        .btn-continue.active:hover { background: #1d4ed8; }
+        
+        .hidden { display: none; }
+        .alert-box { padding: 10px 14px; border-radius: 8px; font-size: 0.85rem; margin-bottom: 14px; display: none; background: #fee2e2; color: #991b1b; border: 1px solid #f87171; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div id="errorAlert" class="alert-box"></div>
+
+        <!-- STEP 1: MOBILE LOGIN -->
+        <div id="stepLogin">
+            <h1 class="title">Account Login</h1>
+            <p class="subtitle">Please enter your mobile number to access your Radha HIMS account</p>
+
+            <div class="input-row">
+                <div class="country-box"><span>🇮🇳</span> +91</div>
+                <div class="phone-box">
+                    <input type="tel" id="mobileInput" placeholder="Phone Number" maxlength="10" autofocus oninput="validateMobile()">
+                </div>
+            </div>
+
+            <div class="terms">By continuing you agree to <a href="#">Terms & Conditions</a></div>
+        </div>
+
+        <!-- STEP 2: OTP VERIFICATION -->
+        <div id="stepOtp" class="hidden">
+            <h1 class="title">Verify OTP</h1>
+            <p class="subtitle">Enter the 4-digit code sent to <span id="displayMobileNum" style="font-weight:600; color:#0f172a;"></span></p>
+
+            <div class="input-row" style="justify-content: center; margin-top: 15px;">
+                <input type="text" id="otpInput" class="otp-box" placeholder="----" maxlength="4" oninput="validateOtpInput()">
+            </div>
+        </div>
+
+        <!-- STEP 3: SELECT BUSINESS / BRANCH -->
+        <div id="stepBranch" class="hidden">
+            <h1 class="title">Select Business</h1>
+            <p class="subtitle">Choose the branch or select All Branches for attendance</p>
+
+            <div class="search-container">
+                <i class="fa-solid fa-search"></i>
+                <input type="text" id="branchSearchInput" placeholder="Search" oninput="filterBranches()">
+            </div>
+
+            <div class="business-list" id="businessListContainer"></div>
+
+            <button class="expand-btn" onclick="toggleExpandAll()">Expand all</button>
+        </div>
+
+        <!-- STEP 4: DEVICE ACCESS (Final Setup Step) -->
+        <div id="stepDevice" class="hidden">
+            <h1 class="title" style="margin-bottom: 20px;">Device Access</h1>
+            
+            <div class="device-card">
+                <div class="device-branch-title" id="selectedBranchTitle">Branch Name</div>
+                
+                <div class="android-id-box">
+                    <div class="android-icon">
+                        <i class="fa-solid fa-tablet-screen-button"></i>
+                    </div>
+                    <div class="android-details">
+                        <span>Device ID:</span>
+                        <strong id="generatedAndroidId">Loading...</strong>
+                    </div>
+                </div>
+
+                <input type="text" id="deviceNameInput" class="device-name-input" placeholder="Enter Device Display Name" oninput="validateDeviceInput()">
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-section">
+        <button id="continueBtn" class="btn-continue" disabled onclick="handleContinue()">Continue</button>
+    </div>
+
+    <script>
+        const HR_API = `${window.location.origin}/api/hr`;
+        let currentStep = 'login'; 
+        let verifiedClientClid = null;
+        let rawBranchesList = [];
+        let tempSelectedBranchId = "";
+        let tempSelectedBranchName = "";
+
+        let persistentAndroidId = localStorage.getItem('kiosk_android_id');
+        if (!persistentAndroidId) {
+            const randomHex = Array.from({length: 16}, () => Math.floor(Math.random() * 16).toString(16)).join('');
+            persistentAndroidId = 'db' + randomHex;
+            localStorage.setItem('kiosk_android_id', persistentAndroidId);
+        }
+
+        function getDynamicDeviceModelName() {
+            const ua = navigator.userAgent;
+            if (/android/i.test(ua)) {
+                let match = ua.match(/;\s([^;]+)\sBuild\//);
+                return match ? match[1] : "Radha HIMS";
+            } else if (/iphone|ipad|ipod/i.test(ua)) {
+                return "iOS Kiosk Terminal";
+            } else if (/windows/i.test(ua)) {
+                return "Windows PC Kiosk";
+            } else if (/macintosh|mac os x/i.test(ua)) {
+                return "Mac Terminal Kiosk";
+            }
+            return "Web Kiosk Terminal";
+        }
+
+        function validateMobile() {
+            const mobile = document.getElementById('mobileInput').value.trim();
+            const btn = document.getElementById('continueBtn');
+            if (mobile.length === 10 && !isNaN(mobile)) {
+                btn.classList.add('active'); btn.disabled = false;
+            } else {
+                btn.classList.remove('active'); btn.disabled = true;
+            }
+        }
+
+        function validateOtpInput() {
+            const otp = document.getElementById('otpInput').value.trim();
+            const btn = document.getElementById('continueBtn');
+            if (otp.length === 4) {
+                btn.classList.add('active'); btn.disabled = false;
+            } else {
+                btn.classList.remove('active'); btn.disabled = true;
+            }
+        }
+
+        function validateDeviceInput() {
+            const devName = document.getElementById('deviceNameInput').value.trim();
+            const btn = document.getElementById('continueBtn');
+            if (devName.length > 0) {
+                btn.classList.add('active'); btn.disabled = false;
+            } else {
+                btn.classList.remove('active'); btn.disabled = true;
+            }
+        }
+
+        function handleContinue() {
+            if (currentStep === 'login') {
+                sendOtp();
+            } else if (currentStep === 'otp') {
+                verifyOtp();
+            } else if (currentStep === 'branch') {
+                goToDeviceAccessStep();
+            } else if (currentStep === 'device') {
+                completeSetupAndRedirect();
+            }
+        }
+
+        async function sendOtp() {
+            const mobile = document.getElementById('mobileInput').value.trim();
+            const btn = document.getElementById('continueBtn');
+            btn.disabled = true; btn.textContent = "Processing...";
+
+            try {
+                const res = await fetch(`${HR_API}/kiosk-send-otp`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mobile })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    localStorage.setItem('kiosk_mobile', mobile);
+                    document.getElementById('displayMobileNum').textContent = "+91 " + mobile;
+                    document.getElementById('stepLogin').classList.add('hidden');
+                    document.getElementById('stepOtp').classList.remove('hidden');
+                    currentStep = 'otp';
+                    document.getElementById('otpInput').value = "";
+                    btn.classList.remove('active'); btn.disabled = true;
+                    btn.textContent = "Continue";
+                    document.getElementById('otpInput').focus();
+                } else {
+                    showAlert(data.error || 'Authentication failed.');
+                    btn.disabled = false; btn.textContent = "Continue";
+                }
+            } catch (e) {
+                showAlert('Network error occurred.');
+                btn.disabled = false; btn.textContent = "Continue";
+            }
+        }
+
+        async function verifyOtp() {
+            const mobile = localStorage.getItem('kiosk_mobile');
+            const otp = document.getElementById('otpInput').value.trim();
+            const btn = document.getElementById('continueBtn');
+            btn.disabled = true; btn.textContent = "Verifying...";
+
+            try {
+                const res = await fetch(`${HR_API}/kiosk-verify-otp`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mobile, otp })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    verifiedClientClid = data.clid;
+                    rawBranchesList = data.branches || [];
+                    rawBranchesList.unshift({ id: 'all', name: 'All Branches (All Staff)' });
+
+                    renderBranchList(rawBranchesList);
+
+                    document.getElementById('stepOtp').classList.add('hidden');
+                    document.getElementById('stepBranch').classList.remove('hidden');
+                    currentStep = 'branch';
+                    btn.classList.remove('active'); btn.disabled = true;
+                    btn.textContent = "Proceed";
+                } else {
+                    showAlert(data.error || 'Invalid OTP.');
+                    btn.disabled = false; btn.textContent = "Verify & Proceed";
+                }
+            } catch (e) {
+                showAlert('Verification connection error.');
+                btn.disabled = false; btn.textContent = "Verify & Proceed";
+            }
+        }
+
+        function renderBranchList(branches) {
+            const container = document.getElementById('businessListContainer');
+            container.innerHTML = '';
+            branches.forEach((b) => {
+                container.innerHTML += `
+                    <label class="business-item">
+                        <div class="business-left">
+                            <input type="radio" name="selectedBranch" value="${b.id}" data-name="${b.name}" onchange="enableProceedBtn()">
+                            <span class="business-name">${b.name}</span>
+                        </div>
+                        <span class="lo-badge">LO</span>
+                    </label>
+                `;
+            });
+        }
+
+        function enableProceedBtn() {
+            const btn = document.getElementById('continueBtn');
+            btn.classList.add('active');
+            btn.disabled = false;
+        }
+
+        function filterBranches() {
+            const query = document.getElementById('branchSearchInput').value.toLowerCase();
+            const filtered = rawBranchesList.filter(b => b.name.toLowerCase().includes(query));
+            renderBranchList(filtered);
+        }
+
+        function toggleExpandAll() {
+            document.getElementById('branchSearchInput').value = '';
+            renderBranchList(rawBranchesList);
+        }
+
+        function goToDeviceAccessStep() {
+            const selectedRadio = document.querySelector('input[name="selectedBranch"]:checked');
+            if (!selectedRadio) {
+                showAlert("Please select a branch or All Branches.");
+                return;
+            }
+
+            tempSelectedBranchId = selectedRadio.value;
+            tempSelectedBranchName = selectedRadio.getAttribute('data-name');
+
+            document.getElementById('selectedBranchTitle').textContent = tempSelectedBranchName;
+            document.getElementById('generatedAndroidId').textContent = persistentAndroidId;
+
+            const detectedModelName = getDynamicDeviceModelName();
+            const deviceInput = document.getElementById('deviceNameInput');
+            deviceInput.value = detectedModelName;
+            validateDeviceInput();
+
+            document.getElementById('stepBranch').classList.add('hidden');
+            document.getElementById('stepDevice').classList.remove('hidden');
+            currentStep = 'device';
+
+            const btn = document.getElementById('continueBtn');
+            btn.textContent = "Continue";
+            deviceInput.focus();
+        }
+
+        function completeSetupAndRedirect() {
+            const deviceName = document.getElementById('deviceNameInput').value.trim();
+            if (!deviceName) {
+                showAlert("Please enter a device display name.");
+                return;
+            }
+
+            localStorage.setItem('kiosk_branch_id', tempSelectedBranchId);
+            localStorage.setItem('kiosk_branch_name', tempSelectedBranchName);
+            localStorage.setItem('kiosk_clid', verifiedClientClid);
+            localStorage.setItem('kiosk_device_name', deviceName);
+            localStorage.setItem('kiosk_android_id', persistentAndroidId);
+            localStorage.setItem('kiosk_is_logged_in', 'true');
+
+            // Setup complete, redirecting to the separate face-scanner dashboard page
+            window.location.href = '/hr/face-scanner';
+        }
+
+        function showAlert(msg) {
+            const box = document.getElementById('errorAlert');
+            box.textContent = msg;
+            box.style.display = 'block';
+            setTimeout(() => box.style.display = 'none', 4000);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geo-Fence Management - Radha HIMS</title>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; }
+        body { background-color: #f8fafc; color: #2d3748; display: flex; height: 100vh; overflow: hidden; }
+
+        /* MAIN WRAPPER (Flex Layout: Automatically adapts with 240px and 68px sidebar) */
+        .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow-y: auto; height: 100vh; background: #f8fafc; min-width: 0; }
+
+        /* TOP HEADER */
+        .top-header { height: 60px; background: #ffffff; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; flex-shrink: 0; }
+        .search-bar { position: relative; width: 380px; }
+        .search-bar input { width: 100%; padding: 8px 12px 8px 36px; border: 1px solid #e2e8f0; border-radius: 6px; background: #ffffff; font-size: 0.88rem; outline: none; }
+        .search-bar i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
+
+        .header-right { display: flex; align-items: center; gap: 18px; }
+        .user-name-tag { font-weight: 600; font-size: 0.9rem; color: #334155; display: flex; align-items: center; gap: 8px; }
+        .user-avatar { width: 32px; height: 32px; border-radius: 50%; background: #2563eb; color: white; font-weight: bold; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; }
+
+        /* PAGE HEADER & CONTENT */
+        .content-area { padding: 24px 32px; flex: 1; }
+        .page-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .page-title { font-size: 1.35rem; font-weight: 700; color: #0f172a; }
+        
+        .btn-add-geo { background: #2563eb; color: #ffffff; border: none; padding: 9px 18px; border-radius: 6px; font-weight: 600; font-size: 0.88rem; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.15s; }
+        .btn-add-geo:hover { background: #1d4ed8; }
+
+        /* GEO CARDS GRID */
+        .geo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .geo-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 18px 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; flex-direction: column; justify-content: space-between; transition: 0.15s; }
+        .geo-card:hover { border-color: #cbd5e1; box-shadow: 0 4px 8px rgba(0,0,0,0.04); }
+        
+        .geo-card-title { font-size: 1.02rem; font-weight: 700; color: #0f172a; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+        .geo-detail-row { font-size: 0.85rem; color: #475569; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+        .geo-detail-row i { color: #64748b; width: 16px; }
+
+        .geo-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 15px; border-top: 1px solid #f1f5f9; padding-top: 12px; }
+        .btn-action-sm { background: #ffffff; border: 1px solid #cbd5e1; padding: 5px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; color: #2563eb; transition: 0.15s; }
+        .btn-action-sm:hover { background: #eff6ff; border-color: #2563eb; }
+
+        /* MODAL */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.5); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-card { background: #ffffff; width: 100%; max-width: 600px; border-radius: 12px; padding: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 18px; }
+        .modal-title { font-size: 1.15rem; font-weight: 700; color: #0f172a; }
+        .close-btn { background: none; border: none; font-size: 1.3rem; cursor: pointer; color: #94a3b8; }
+
+        .form-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+        .form-group label { font-size: 0.82rem; font-weight: 600; color: #475569; }
+        .form-group input { padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.88rem; outline: none; }
+        
+        .search-box-row { display: flex; gap: 8px; }
+        .search-box-row input { flex: 1; }
+        .btn-search-loc { background: #10b981; color: white; border: none; padding: 0 14px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
+        .btn-search-loc:hover { background: #059669; }
+
+        /* MAP CONTAINER FIXED */
+        #map { width: 100%; height: 260px; border-radius: 8px; border: 1px solid #cbd5e1; margin-top: 8px; margin-bottom: 14px; z-index: 10; }
+
+        .btn-save-geo { width: 100%; background: #2563eb; color: white; border: none; padding: 11px; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 10px; font-size: 0.95rem; }
+        .badge-status { padding: 2px 6px; border-radius: 10px; font-size: 0.65rem; font-weight: bold; background: #c6f6d5; color: #22543d; margin-left: auto; }
+    </style>
+    <!-- Google Maps JavaScript API with Places Library using updated API Key -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBeq9xWV49_JoX-XZTHfcbXjgMXDzPCmcg&libraries=places"></script>
+</head>
+<body>
+
+    <!-- 🚀 CENTRALIZED SIDEBAR VIA JINJA2 INCLUDE -->
+    {% include 'sidebar.html' %}
+
+    <!-- 2. MAIN CONTENT WRAPPER -->
+    <div class="main-wrapper">
+        <div class="top-header">
+            <div class="search-bar">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="searchInput" placeholder="Search geo-fences..." onkeyup="filterGeoCards(event)">
+            </div>
+            <div class="header-right">
+                <div class="user-name-tag">
+                    <span id="userNameDisplay">System Admin</span>
+                    <div class="user-avatar" id="userAvatarText">SA</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <div class="page-header-row">
+                <h1 class="page-title">Geo-Fence Management</h1>
+                <button class="btn-add-geo" onclick="openGeoModal()"><i class="fa-solid fa-plus"></i> Add Geo Location</button>
+            </div>
+
+            <!-- Geofence Cards Container -->
+            <div class="geo-grid" id="geoContainer">
+                <div style="grid-column: span 3; text-align: center; padding: 40px; color: #94a3b8;">Loading geo-fences from database...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADD / EDIT GEO MODAL WITH GOOGLE MAP -->
+    <div class="modal-overlay" id="geoModal" onclick="handleOverlayClick(event)">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title" id="modalTitle">Configure New Geo Location</div>
+                <button class="close-btn" onclick="closeGeoModal()">&times;</button>
+            </div>
+            <form id="geoForm" onsubmit="saveGeoFence(event)">
+                <input type="hidden" id="geoId">
+                <div class="form-group">
+                    <label>Location / Branch Name *</label>
+                    <input type="text" id="geoName" placeholder="e.g., Sasaram Branch / Patna Hospital" required>
+                </div>
+                
+                <!-- Google Places Autocomplete Search Box -->
+                <div class="form-group">
+                    <label>Search Hospital / Area / Pincode (Google Maps Powered)</label>
+                    <div class="search-box-row">
+                        <input type="text" id="searchPlaceInput" placeholder="Type hospital name (e.g. Nirwana Netralaya)">
+                        <button type="button" class="btn-search-loc" onclick="searchLocationByName()"><i class="fa-solid fa-search"></i> Search</button>
+                    </div>
+                </div>
+
+                <!-- Interactive Map Preview -->
+                <div style="font-size: 0.8rem; font-weight: 600; color: #475569; margin-bottom: 2px;">Click anywhere on map or drag pin to set boundary:</div>
+                <div id="map"></div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px;">
+                    <div class="form-group">
+                        <label>Latitude *</label>
+                        <input type="number" step="any" id="geoLat" required readonly style="background: #f1f5f9;">
+                    </div>
+                    <div class="form-group">
+                        <label>Longitude *</label>
+                        <input type="number" step="any" id="geoLng" required readonly style="background: #f1f5f9;">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Allowed Attendance Radius (in Meters) *</label>
+                    <input type="number" id="geoRadius" value="100" min="10" max="5000" required oninput="updateMapCircleRadius()">
+                </div>
+                <button type="submit" class="btn-save-geo" id="btnSaveText">Save Geo-Fence</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        const API_BASE = '/api/hr';
+        let allGeofences = [];
+        let map = null;
+        let marker = null;
+        let circle = null;
+        let autocomplete = null;
+        let geocoder = null;
+
+        async function initGeoPage() {
+            await loadUserData();
+            await loadGeoFences();
+        }
+
+        async function loadUserData() {
+            try {
+                const userRes = await fetch(`${API_BASE}/current-user`);
+                if (userRes.ok) {
+                    const userData = await userRes.json();
+                    const fullName = userData.name || userData.username || 'System Admin';
+                    document.getElementById('userNameDisplay').innerText = fullName;
+                    const userInitials = fullName.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase() || 'SA';
+                    document.getElementById('userAvatarText').innerText = userInitials;
+                }
+            } catch (err) {}
+        }
+
+        async function loadGeoFences() {
+            const container = document.getElementById('geoContainer');
+            try {
+                const activeBranchId = localStorage.getItem('active_branch_id');
+                const res = await fetch(`${API_BASE}/geofences`);
+                if (!res.ok) throw new Error("Failed to fetch");
+                const data = await res.json();
+                let rawList = data.geofences || data.data || [];
+
+                if (activeBranchId) {
+                    allGeofences = rawList.filter(g => {
+                        const gBranch = g.Fk_BranchID || g.branch_id || g.BranchID || 1;
+                        return String(gBranch) === String(activeBranchId);
+                    });
+                } else {
+                    allGeofences = rawList;
+                }
+
+                renderGeoCards(allGeofences);
+            } catch (err) {
+                container.innerHTML = `<div style="grid-column: span 3; text-align: center; padding: 40px; color: #e53e3e;">Failed to load geo-fence locations.</div>`;
+            }
+        }
+
+        function renderGeoCards(list) {
+            const container = document.getElementById('geoContainer');
+            container.innerHTML = '';
+            if (list && list.length > 0) {
+                list.forEach(g => {
+                    const geoId = g.id || g.Pk_GeoFenceID || '';
+                    const geoName = g.name || g.LocationName || 'Unnamed Area';
+                    const lat = (g.latitude !== undefined && g.latitude !== null && g.latitude !== 'N/A') ? g.latitude : (g.Latitude || '0.000000');
+                    const lng = (g.longitude !== undefined && g.longitude !== null && g.longitude !== 'N/A') ? g.longitude : (g.Longitude || '0.000000');
+                    const radius = g.radius !== undefined ? g.radius : (g.Radius || 100);
+
+                    container.innerHTML += `
+                        <div class="geo-card">
+                            <div>
+                                <div class="geo-card-title"><i class="fa-solid fa-location-crosshairs" style="color: #2563eb;"></i> ${geoName}</div>
+                                <div class="geo-detail-row"><i class="fa-solid fa-compass"></i> Lat: ${lat}, Lng: ${lng}</div>
+                                <div class="geo-detail-row"><i class="fa-solid fa-ruler-combined"></i> Radius: ${radius} Meters</div>
+                            </div>
+                            <div class="geo-actions">
+                                <button class="btn-action-sm" onclick="openEditGeoModal('${geoId}', '${geoName.replace(/'/g, "\\'")}', '${lat}', '${lng}', '${radius}')">Edit Geo</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                container.innerHTML = `<div style="grid-column: span 3; text-align: center; padding: 40px; color: #94a3b8;">No geo-fence locations configured for this branch.</div>`;
+            }
+        }
+
+        function filterGeoCards(e) {
+            const query = e.target.value.toLowerCase().trim();
+            const filtered = allGeofences.filter(g => {
+                const name = g.name || g.LocationName || '';
+                return String(name).toLowerCase().includes(query);
+            });
+            renderGeoCards(filtered);
+        }
+
+        function initMap(lat = 24.949163, lng = 84.021384) {
+            document.getElementById('geoModal').style.display = 'flex';
+            setTimeout(() => {
+                const centerPos = { lat: lat, lng: lng };
+                
+                if (!map) {
+                    map = new google.maps.Map(document.getElementById('map'), {
+                        center: centerPos,
+                        zoom: 16,
+                        mapTypeControl: false,
+                        streetViewControl: false
+                    });
+
+                    marker = new google.maps.Marker({
+                        position: centerPos,
+                        map: map,
+                        draggable: true
+                    });
+
+                    circle = new google.maps.Circle({
+                        strokeColor: '#2563eb',
+                        strokeOpacity: 0.8,
+                        strokeWeight: 2,
+                        fillColor: '#3b82f6',
+                        fillOpacity: 0.2,
+                        map: map,
+                        radius: parseInt(document.getElementById('geoRadius').value, 10) || 100
+                    });
+                    circle.bindTo('center', marker, 'position');
+
+                    map.addListener('click', function(e) {
+                        marker.setPosition(e.latLng);
+                        updateLatLngInputs(e.latLng.lat(), e.latLng.lng());
+                    });
+
+                    marker.addListener('dragend', function(e) {
+                        updateLatLngInputs(e.latLng.lat(), e.latLng.lng());
+                    });
+
+                    const inputField = document.getElementById('searchPlaceInput');
+                    autocomplete = new google.maps.places.Autocomplete(inputField);
+                    autocomplete.bindTo('bounds', map);
+                    autocomplete.addListener('place_changed', function() {
+                        const place = autocomplete.getPlace();
+                        if (!place.geometry || !place.geometry.location) {
+                            return;
+                        }
+                        map.setCenter(place.geometry.location);
+                        map.setZoom(17);
+                        marker.setPosition(place.geometry.location);
+                        updateLatLngInputs(place.geometry.location.lat(), place.geometry.location.lng());
+                    });
+
+                    geocoder = new google.maps.Geocoder();
+                } else {
+                    google.maps.event.trigger(map, 'resize');
+                    map.setCenter(centerPos);
+                    marker.setPosition(centerPos);
+                }
+                updateLatLngInputs(lat, lng);
+            }, 300);
+        }
+
+        function updateLatLngInputs(lat, lng) {
+            document.getElementById('geoLat').value = lat.toFixed(6);
+            document.getElementById('geoLng').value = lng.toFixed(6);
+        }
+
+        function updateMapCircleRadius() {
+            if (circle) {
+                const radius = parseInt(document.getElementById('geoRadius').value, 10) || 100;
+                circle.setRadius(radius);
+            }
+        }
+
+        function searchLocationByName() {
+            const query = document.getElementById('searchPlaceInput').value.trim();
+            if (!query) {
+                return;
+            }
+
+            if (geocoder) {
+                geocoder.geocode({ address: query }, function(results, status) {
+                    if (status === 'OK' && results[0]) {
+                        const loc = results[0].geometry.location;
+                        map.setCenter(loc);
+                        map.setZoom(17);
+                        marker.setPosition(loc);
+                        updateLatLngInputs(loc.lat(), loc.lng());
+                    } else {
+                        alert("Location not found on Google Maps. Please click directly on the map.");
+                    }
+                });
+            }
+        }
+
+        function openGeoModal() {
+            document.getElementById('geoId').value = '';
+            document.getElementById('geoName').value = '';
+            document.getElementById('searchPlaceInput').value = '';
+            document.getElementById('geoRadius').value = '100';
+            document.getElementById('modalTitle').innerText = 'Configure New Geo Location';
+            document.getElementById('btnSaveText').innerText = 'Save Geo-Fence';
+            initMap(24.949163, 84.021384);
+        }
+
+        function openEditGeoModal(id, name, lat, lng, radius) {
+            document.getElementById('geoId').value = id;
+            document.getElementById('geoName').value = name;
+            document.getElementById('searchPlaceInput').value = '';
+            document.getElementById('geoRadius').value = radius;
+            document.getElementById('modalTitle').innerText = 'Edit Geo Location';
+            document.getElementById('btnSaveText').innerText = 'Update Geo-Fence';
+            
+            const numLat = parseFloat(lat) || 24.949163;
+            const numLng = parseFloat(lng) || 84.021384;
+            initMap(numLat, numLng);
+        }
+
+        function closeGeoModal() {
+            document.getElementById('geoModal').style.display = 'none';
+        }
+
+        function handleOverlayClick(event) {
+            if (event.target.id === 'geoModal') {
+                closeGeoModal();
+            }
+        }
+
+        async function saveGeoFence(e) {
+            e.preventDefault();
+            const geoId = document.getElementById('geoId').value;
+            const activeBranchId = localStorage.getItem('active_branch_id') || null;
+            
+            const payload = {
+                id: geoId,
+                name: document.getElementById('geoName').value.trim(),
+                latitude: document.getElementById('geoLat').value.trim(),
+                longitude: document.getElementById('geoLng').value.trim(),
+                radius: parseInt(document.getElementById('geoRadius').value, 10) || 100,
+                branch_id: activeBranchId
+            };
+
+            const endpoint = geoId ? `${API_BASE}/update-geofence` : `${API_BASE}/add-geofence`;
+
+            try {
+                const res = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const resData = await res.json().catch(() => ({}));
+
+                if (res.ok && (resData.success !== false)) {
+                    closeGeoModal();
+                    document.getElementById('geoForm').reset();
+                    await loadGeoFences();
+                    alert(geoId ? "Geo-fence updated successfully!" : "Geo-fence added successfully!");
+                } else {
+                    alert("Failed to save geo-fence: " + (resData.error || "Server error"));
+                }
+            } catch (err) {
+                alert("Network error while saving geo-fence.");
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initGeoPage);
+    </script>
+</body>
+</html>

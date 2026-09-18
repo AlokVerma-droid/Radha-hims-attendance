@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospital Asset Management Dashboard</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 20px; background-color: #f4f6f9; }
+        h1, h2 { color: #333; }
+        .container { display: flex; gap: 20px; }
+        .card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); flex: 1; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; color: #555; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-size: 14px; }
+        button { background-color: #007bff; color: white; padding: 12px 15px; border: none; border-radius: 4px; cursor: pointer; width: 100%; font-size: 16px; font-weight: bold; }
+        button:hover { background-color: #0056b3; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background-color: #007bff; color: white; }
+        .status { padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 12px; display: inline-block; }
+        .in-use { background-color: #d4edda; color: #155724; }
+        .maintenance { background-color: #fff3cd; color: #856404; }
+        .scrapped { background-color: #f8d7da; color: #721c24; }
+        .text-center { text-align: center; }
+    </style>
+</head>
+<body>
+
+    <h1>🏥 Hospital Asset Management Dashboard</h1>
+    <hr>
+
+    <div class="container">
+        <!-- Asset Entry Form -->
+        <div class="card">
+            <h2>➕ Add New Asset</h2>
+            <form id="assetForm">
+                <div class="form-group">
+                    <label for="asset_id">Asset ID / Code *</label>
+                    <input type="text" id="asset_id" required placeholder="e.g. AST-101">
+                </div>
+
+                <div class="form-group">
+                    <label for="asset_name">Asset Name *</label>
+                    <input type="text" id="asset_name" required placeholder="e.g. Ventilator">
+                </div>
+
+                <div class="form-group">
+                    <label for="category">Category *</label>
+                    <input type="text" id="category" required placeholder="e.g. Biomedical">
+                </div>
+
+                <!-- Dynamic Department Dropdown -->
+                <div class="form-group">
+                    <label for="department_id">Department *</label>
+                    <select id="department_id" required>
+                        <option value="">-- Loading Departments... --</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="cost">Cost (₹)</label>
+                    <input type="number" id="cost" placeholder="150000" step="0.01">
+                </div>
+
+                <!-- Dynamic Status Dropdown from tblassetstatusmaster -->
+                <div class="form-group">
+                    <label for="status">Asset Status *</label>
+                    <select id="status" required>
+                        <option value="">-- Loading Statuses... --</option>
+                    </select>
+                </div>
+
+                <button type="submit">Save Asset</button>
+            </form>
+        </div>
+
+        <!-- Registered Assets Table -->
+        <div class="card" style="flex: 2;">
+            <h2>📋 Registered Assets</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Dept</th>
+                        <th>Cost</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="assetTableBody">
+                    <!-- Dynamic Data loaded via JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const MASTER_URL = `${window.location.origin}/api/masters`;
+        const ASSET_URL = `${window.location.origin}/api/assets`;
+
+        // 1. Fetch Departments Dropdown (tblassetdeptmaster)
+        async function loadDepartments() {
+            try {
+                const response = await fetch(`${MASTER_URL}/departments`);
+                const data = await response.json();
+                const deptSelect = document.getElementById('department_id');
+
+                deptSelect.innerHTML = '<option value="">-- Select Department --</option>';
+
+                if (data.departments && data.departments.length > 0) {
+                    data.departments.forEach(dept => {
+                        deptSelect.innerHTML += `<option value="${dept.dept_id}">${dept.dept_name} (${dept.dept_id})</option>`;
+                    });
+                } else {
+                    deptSelect.innerHTML = '<option value="">No Departments Found in DB</option>';
+                }
+            } catch (error) {
+                console.error('Dept Error:', error);
+                document.getElementById('department_id').innerHTML = '<option value="">Failed to load departments</option>';
+            }
+        }
+
+        // 2. Fetch Statuses Dropdown (tblassetstatusmaster)
+        async function loadStatuses() {
+            try {
+                const response = await fetch(`${MASTER_URL}/statuses`);
+                const data = await response.json();
+                const statusSelect = document.getElementById('status');
+
+                statusSelect.innerHTML = '<option value="">-- Select Status --</option>';
+
+                if (data.statuses && data.statuses.length > 0) {
+                    data.statuses.forEach(st => {
+                        statusSelect.innerHTML += `<option value="${st.status_id}">${st.status_name}</option>`;
+                    });
+                } else {
+                    statusSelect.innerHTML = '<option value="">No Statuses Found in DB</option>';
+                }
+            } catch (error) {
+                console.error('Status Error:', error);
+                document.getElementById('status').innerHTML = '<option value="">Failed to load statuses</option>';
+            }
+        }
+
+        // 3. Load Registered Assets Table
+        async function loadAssets() {
+            try {
+                const response = await fetch(`${ASSET_URL}/`);
+                const data = await response.json();
+                const tbody = document.getElementById('assetTableBody');
+
+                if (!tbody) return;
+                tbody.innerHTML = '';
+
+                if (data.assets && data.assets.length > 0) {
+                    data.assets.forEach(asset => {
+                        let statusClass = 'in-use';
+                        if (asset.status === 'Under Maintenance') statusClass = 'maintenance';
+                        if (asset.status === 'Scrapped') statusClass = 'scrapped';
+
+                        tbody.innerHTML += `
+                            <tr>
+                                <td>${asset.asset_id}</td>
+                                <td>${asset.asset_name}</td>
+                                <td>${asset.category}</td>
+                                <td>${asset.department_id}</td>
+                                <td>₹${asset.cost}</td>
+                                <td><span class="status ${statusClass}">${asset.status}</span></td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="6" class="text-center">No registered assets available.</td></tr>`;
+                }
+            } catch (error) {
+                console.error('Asset Table Error:', error);
+            }
+        }
+
+        // 4. Form Submit Listener
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDepartments();
+            loadStatuses();
+            loadAssets();
+
+            const assetForm = document.getElementById('assetForm');
+            if (assetForm) {
+                assetForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+
+                    const payload = {
+                        asset_id: document.getElementById('asset_id').value,
+                        asset_name: document.getElementById('asset_name').value,
+                        category: document.getElementById('category').value,
+                        department_id: document.getElementById('department_id').value,
+                        cost: parseFloat(document.getElementById('cost').value) || 0.0,
+                        status: document.getElementById('status').value
+                    };
+
+                    try {
+                        const response = await fetch(`${ASSET_URL}/add`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+
+                        const result = await response.json();
+
+                        if (response.ok) {
+                            alert(result.message || "Asset registered successfully.");
+                            assetForm.reset();
+                            loadAssets();
+                        } else {
+                            alert(`Registration Failed: ${result.error}`);
+                        }
+                    } catch (error) {
+                        alert("Network Error: Connection failed.");
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

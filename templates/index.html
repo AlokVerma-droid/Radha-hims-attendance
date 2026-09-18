@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospital Enterprise Management System</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f0f2f5; padding: 40px 20px; color: #333; }
+        
+        .header { text-align: center; margin-bottom: 40px; }
+        .header h1 { color: #1a365d; font-size: 2.2rem; }
+        .header p { color: #718096; margin-top: 8px; font-size: 1rem; }
+
+        .modules-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; max-width: 1200px; margin: 0 auto; }
+        
+        .card { background: #ffffff; border-radius: 12px; padding: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: flex; flex-direction: column; justify-content: space-between; border-top: 5px solid #cbd5e0; transition: all 0.2s ease-in-out; }
+        
+        .card.active { border-top-color: #2b6cb0; }
+        .card.active:hover { transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
+
+        .card.disabled { background: #f8fafc; opacity: 0.8; }
+
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .card-title { font-size: 1.25rem; color: #2d3748; font-weight: bold; }
+        
+        .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; }
+        .badge-active { background: #c6f6d5; color: #22543d; }
+        .badge-dev { background: #feebc8; color: #744210; }
+
+        .card-desc { color: #4a5568; font-size: 0.95rem; line-height: 1.5; margin-bottom: 25px; }
+        
+        .btn { display: inline-block; width: 100%; padding: 12px; text-align: center; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 0.95rem; border: none; cursor: pointer; transition: background 0.2s; }
+        .btn-primary { background-color: #3182ce; color: white; }
+        .btn-primary:hover { background-color: #2b6cb0; }
+        .btn-disabled { background-color: #cbd5e0; color: #718096; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>🏥 Radha Hospital Information Management System (HIMS)</h1>
+        <p>Select a module to proceed</p>
+    </div>
+
+    <div class="modules-grid">
+        
+        <!-- 1. HR Module (ACTIVE - CURRENT FOCUS) -->
+        <div class="card active">
+            <div>
+                <div class="card-header">
+                    <span class="card-title">👥 HR & Staff Module</span>
+                    <span class="badge badge-active">Active</span>
+                </div>
+                <p class="card-desc">
+                    Employee Registration, Attendance Tracking, Leave Management, and Payroll.
+                </p>
+            </div>
+            <a href="/hr" class="btn btn-primary">Open HR Portal &rarr;</a>
+        </div>
+
+        <!-- 2. Inventory & Assets Module (UNDER DEV) -->
+        <div class="card disabled">
+            <div>
+                <div class="card-header">
+                    <span class="card-title">📦 Inventory & Assets</span>
+                    <span class="badge badge-dev">Under Dev</span>
+                </div>
+                <p class="card-desc">
+                    Biomedical equipment tracking, Asset registration, and Maintenance logs.
+                </p>
+            </div>
+            <button class="btn btn-disabled" disabled>🔒 Under Development</button>
+        </div>
+
+        <!-- 3. Patient Care Module (UNDER DEV) -->
+        <div class="card disabled">
+            <div>
+                <div class="card-header">
+                    <span class="card-title">🩺 Patient Care</span>
+                    <span class="badge badge-dev">Under Dev</span>
+                </div>
+                <p class="card-desc">
+                    Patient Registration, OPD/IPD Admissions, Doctor Appointments, and Billing.
+                </p>
+            </div>
+            <button class="btn btn-disabled" disabled>🔒 Under Development</button>
+        </div>
+
+    </div>
+
+</body>
+</html>

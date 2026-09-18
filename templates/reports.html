@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - Radha HIMS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: #f8fafc; color: #1e293b; display: flex; height: 100vh; overflow: hidden; }
+
+        /* Centralized Sidebar Styling */
+        .sidebar {
+            width: 240px;
+            background: #ffffff;
+            border-right: 1px solid #edf2f7;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100vh;
+            flex-shrink: 0;
+        }
+        .sidebar-brand {
+            padding: 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #edf2f7;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+        }
+        .nav-menu {
+            padding: 10px 0;
+            list-style: none;
+            margin: 0;
+            overflow-y: auto;
+        }
+        .nav-item {
+            margin: 2px 10px;
+        }
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            color: #64748b;
+            text-decoration: none;
+            font-size: 0.88rem;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.15s ease;
+        }
+        .nav-link i, .nav-link svg {
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+        }
+        .nav-link:hover {
+            background-color: #f1f5f9;
+            color: #1e293b;
+        }
+        .nav-link.active {
+            background-color: #eff6ff;
+            color: #2563eb;
+        }
+        .sidebar-footer {
+            padding: 15px;
+            font-size: 0.75rem;
+            color: #a0aec0;
+            border-top: 1px solid #edf2f7;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        /* Main Wrapper */
+        .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow-y: auto; height: 100vh; background: #f8fafc; }
+        
+        /* Top Navigation Header */
+        .top-header { height: 60px; background: #ffffff; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; position: sticky; top: 0; z-index: 100; }
+        .global-search { position: relative; width: 420px; }
+        .global-search input { width: 100%; padding: 8px 12px 8px 36px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.88rem; outline: none; background: #ffffff; }
+        .global-search i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
+        .kbd-badge { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 4px; padding: 1px 5px; font-size: 0.68rem; color: #64748b; }
+
+        .header-right { display: flex; align-items: center; gap: 18px; }
+        .h-icon { background: none; border: none; font-size: 1.15rem; color: #64748b; cursor: pointer; }
+        .user-profile { display: flex; align-items: center; gap: 10px; }
+        .user-name-tag { font-weight: 600; font-size: 0.9rem; color: #334155; }
+        .user-avatar { width: 34px; height: 34px; background: #2563eb; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: bold; }
+
+        /* Content Body */
+        .content-body { padding: 24px 32px; flex: 1; max-width: 1200px; }
+        .reports-top-tabs { display: flex; gap: 28px; border-bottom: 2px solid #e2e8f0; margin-bottom: 24px; }
+        .report-tab-btn { padding: 10px 4px; font-size: 0.92rem; font-weight: 600; color: #64748b; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; }
+        .report-tab-btn.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 700; }
+
+        .report-filter-bar { margin-bottom: 25px; }
+        .report-filter-input { position: relative; width: 100%; }
+        .report-filter-input input { width: 100%; padding: 12px 16px 12px 42px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.92rem; outline: none; background: #ffffff; }
+        .report-filter-input i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 1rem; }
+
+        .category-block { margin-bottom: 30px; }
+        .category-title { font-size: 0.98rem; font-weight: 700; color: #0f172a; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .category-badge { background: #e2e8f0; color: #475569; font-size: 0.72rem; padding: 2px 8px; border-radius: 12px; font-weight: 600; }
+
+        .report-card-list { display: flex; flex-direction: column; gap: 10px; }
+        .report-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .report-card:hover { border-color: #cbd5e1; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+
+        .report-info { display: flex; align-items: center; gap: 16px; }
+        .report-icon { font-size: 1.15rem; color: #3b82f6; width: 24px; text-align: center; }
+        .report-title-text { font-size: 0.95rem; font-weight: 700; color: #0f172a; }
+        .report-desc-text { font-size: 0.8rem; color: #64748b; margin-top: 4px; display: flex; align-items: center; gap: 8px; }
+        .view-code-tag { background: #f1f5f9; color: #475569; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 0.75rem; border: 1px solid #e2e8f0; }
+
+        .report-actions { display: flex; align-items: center; gap: 12px; }
+        .btn-view-preview { background: #f8fafc; border: 1px solid #cbd5e1; color: #334155; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 0.85rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-view-preview:hover { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; }
+        
+        .btn-generate { background: #2563eb; color: #ffffff; border: none; padding: 8px 20px; border-radius: 6px; font-weight: 600; font-size: 0.85rem; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-generate:hover { background: #1d4ed8; }
+
+        /* Downloads Table View */
+        .history-table-container { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; }
+        .history-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem; }
+        .history-table th { background: #f8fafc; padding: 14px 18px; border-bottom: 1px solid #e2e8f0; color: #475569; font-weight: 600; }
+        .history-table td { padding: 14px 18px; border-bottom: 1px solid #f1f5f9; color: #334155; }
+
+        /* 🚀 ADVANCED CUSTOMIZABLE PREVIEW MODAL */
+        .modal-bg { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(2px); }
+        .preview-modal-box { background: #ffffff; width: 95%; max-width: 1200px; height: 90vh; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); }
+        .modal-header { padding: 14px 24px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; background: #f8fafc; }
+        
+        /* Date & Global Filter Strip */
+        .modal-filter-strip { display: flex; gap: 14px; padding: 10px 24px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; align-items: center; flex-wrap: wrap; }
+        .modal-filter-strip label { font-size: 0.78rem; font-weight: 600; color: #475569; display: block; margin-bottom: 4px; }
+        .modal-filter-strip input[type="date"] { padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.84rem; outline: none; background: #fff; }
+
+        /* All Branch Checkbox Wrapper */
+        .all-branch-check { display: flex; align-items: center; gap: 7px; background: #ffffff; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 6px; cursor: pointer; user-select: none; margin-top: 14px; }
+        .all-branch-check input { cursor: pointer; width: 15px; height: 15px; accent-color: #2563eb; }
+        .all-branch-check span { font-size: 0.82rem; font-weight: 700; color: #1e293b; }
+
+        /* Customization Toolbar */
+        .customizer-toolbar { padding: 10px 24px; background: #ffffff; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap; }
+        .toolbar-left { display: flex; align-items: center; gap: 12px; }
+        .in-modal-search { padding: 7px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.84rem; outline: none; width: 220px; }
+        
+        .dropdown-col-picker { position: relative; }
+        .btn-col-toggle { padding: 7px 14px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.84rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+        .col-dropdown-menu { display: none; position: absolute; top: 105%; left: 0; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); padding: 12px; min-width: 220px; max-height: 250px; overflow-y: auto; z-index: 50; flex-direction: column; gap: 6px; }
+        .col-chk-label { font-size: 0.82rem; font-weight: 500; color: #334155; display: flex; align-items: center; gap: 8px; cursor: pointer; }
+
+        .modal-body { flex: 1; overflow: auto; padding: 0; background: #ffffff; }
+        .modal-footer { padding: 12px 24px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; background: #f8fafc; }
+        
+        .preview-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; text-align: left; }
+        .preview-table th { position: sticky; top: 0; background: #f1f5f9; color: #1e293b; font-weight: 700; padding: 10px 14px; border-bottom: 2px solid #cbd5e1; white-space: nowrap; z-index: 10; }
+        .preview-table td { padding: 10px 14px; border-bottom: 1px solid #f1f5f9; color: #334155; white-space: nowrap; }
+        .preview-table tr:hover { background-color: #f8fafc; }
+
+        /* Print Header - Visible only in Print */
+        .print-header-banner { display: none; text-align: center; margin-bottom: 20px; }
+        .print-header-banner h2 { font-size: 1.4rem; color: #000; margin: 0; }
+        .print-header-banner p { font-size: 0.85rem; color: #555; margin: 4px 0 0 0; }
+
+        @media print {
+            body * { visibility: hidden; }
+            #printableArea, #printableArea * { visibility: visible; }
+            #printableArea { position: absolute; left: 0; top: 0; width: 100%; }
+            .print-header-banner { display: block !important; }
+            .preview-table th { background: #eee !important; color: #000 !important; border: 1px solid #ccc !important; }
+            .preview-table td { border: 1px solid #eee !important; }
+        }
+    </style>
+</head>
+<body>
+
+    {% include 'sidebar.html' %}
+
+    <div class="main-wrapper">
+        <div class="top-header">
+            <div class="global-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" placeholder="Search...">
+                <span class="kbd-badge">Ctrl+K</span>
+            </div>
+            <div class="header-right">
+                <button class="h-icon" onclick="alert('No new notifications')"><i class="fa-regular fa-bell"></i></button>
+                <div class="user-profile">
+                    <span class="user-name-tag" id="topbarUserName">Loading...</span>
+                    <div class="user-avatar" id="topbarUserAvatar">--</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-body">
+            <div class="reports-top-tabs">
+                <div class="report-tab-btn active" id="tabBtnReports" onclick="switchReportsTab('reports')">Reports</div>
+                <div class="report-tab-btn" id="tabBtnDownloads" onclick="switchReportsTab('downloads')">Downloads History</div>
+            </div>
+
+            <!-- TAB 1: REPORTS -->
+            <div id="tabContentReports">
+                <div class="report-filter-bar">
+                    <div class="report-filter-input">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="reportSearchInput" placeholder="Search for a Report..." onkeyup="filterReportsUI()">
+                    </div>
+                </div>
+
+                <div id="dynamicReportsContainer">
+                    <div style="text-align: center; padding: 50px; color: #94a3b8;">
+                        <i class="fa-solid fa-spinner fa-spin" style="font-size: 1.5rem; margin-bottom: 10px; color: #2563eb;"></i>
+                        <div>Loading MIS reports from database...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: DOWNLOADS HISTORY -->
+            <div id="tabContentDownloads" style="display: none;">
+                <div class="history-table-container">
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th>Report Title</th>
+                                <th>Source View</th>
+                                <th>Downloaded By</th>
+                                <th>Timestamp</th>
+                                <th>Status</th>
+                                <th style="text-align: right;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="downloadHistoryBody">
+                            <tr>
+                                <td colspan="6" style="text-align: center; padding: 40px; color: #94a3b8;">Loading download history...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🚀 ADVANCED CUSTOMIZABLE PREVIEW MODAL -->
+    <div class="modal-bg" id="reportPreviewModal">
+        <div class="preview-modal-box">
+            <div class="modal-header">
+                <div>
+                    <h3 id="modalReportTitle" style="font-size: 1.1rem; color: #0f172a; margin-bottom: 2px;">Report Preview</h3>
+                    <span id="modalReportSource" style="font-size: 0.78rem; color: #64748b;">Source View: <code>-</code></span>
+                </div>
+                <button onclick="closePreviewModal()" style="background:none; border:none; font-size:1.3rem; color:#94a3b8; cursor:pointer;">&times;</button>
+            </div>
+
+            <!-- Server-side Date Filter & All Branch Toggle Strip -->
+            <div class="modal-filter-strip">
+                <div>
+                    <label>From Date</label>
+                    <input type="date" id="modalFilterFromDate">
+                </div>
+                <div>
+                    <label>To Date</label>
+                    <input type="date" id="modalFilterToDate">
+                </div>
+
+                <!-- 🎯 All Branch Bypass Checkbox -->
+                <label class="all-branch-check" title="Check this to fetch records from all branches without filtering">
+                    <input type="checkbox" id="chkAllBranchBypass" onchange="applyModalFilters()">
+                    <span><i class="fa-solid fa-code-branch" style="color:#2563eb; margin-right: 3px;"></i> All Branches</span>
+                </label>
+
+                <button onclick="applyModalFilters()" style="margin-top: 14px; padding: 7px 16px; background: #2563eb; color: #fff; border: none; border-radius: 6px; font-size: 0.84rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-filter"></i> Apply Filter
+                </button>
+                <button onclick="resetModalFilters()" style="margin-top: 14px; padding: 7px 14px; background: #fff; color: #64748b; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.84rem; font-weight: 600; cursor: pointer;">
+                    Reset
+                </button>
+            </div>
+
+            <!-- Customizer Toolbar (In-Table Search & Columns Selection) -->
+            <div class="customizer-toolbar">
+                <div class="toolbar-left">
+                    <input type="text" id="inModalFilterInput" class="in-modal-search" placeholder="Filter rows in table..." onkeyup="filterPreviewTableRows()">
+                    
+                    <div class="dropdown-col-picker">
+                        <button class="btn-col-toggle" onclick="toggleColumnPickerDropdown(event)">
+                            <i class="fa-solid fa-sliders"></i> Customize Columns <i class="fa-solid fa-chevron-down" style="font-size: 0.7rem; margin-left: 4px;"></i>
+                        </button>
+                        <div class="col-dropdown-menu" id="columnCheckboxesContainer"></div>
+                    </div>
+                </div>
+
+                <div style="font-size: 0.82rem; color: #64748b;" id="visibleColCount">
+                    Showing all columns
+                </div>
+            </div>
+
+            <!-- Table Viewable & Printable Container -->
+            <div class="modal-body" id="printableArea">
+                <div class="print-header-banner">
+                    <h2 id="printHospitalTitle">Radha HIMS Hospital Report</h2>
+                    <p id="printReportSubtitle">Generated System Report</p>
+                </div>
+
+                <div id="previewLoader" style="text-align: center; padding: 60px; color: #64748b;">
+                    <i class="fa-solid fa-spinner fa-spin" style="font-size: 1.8rem; color: #2563eb; margin-bottom: 10px;"></i>
+                    <div>Fetching records from database...</div>
+                </div>
+                <table class="preview-table" id="previewTable" style="display: none;">
+                    <thead id="previewTableHead"></thead>
+                    <tbody id="previewTableBody"></tbody>
+                </table>
+            </div>
+
+            <div class="modal-footer">
+                <span id="previewCountBadge" style="font-size: 0.85rem; font-weight: 600; color: #475569;">Total: 0 records</span>
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="window.print()" style="padding: 8px 18px; border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.85rem; display: flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-print"></i> Print Customized Report
+                    </button>
+                    <a id="btnDownloadFromModal" href="#" class="btn-generate">
+                        <i class="fa-solid fa-download"></i> Download CSV
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allReports = [];
+        let loggedInUserName = 'Admin';
+        let rawPreviewColumns = [];
+        let rawPreviewRows = [];
+        let activeColumnsMask = [];
+        let currentModalView = '';
+        let currentModalTitle = '';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCurrentUser();
+            fetchDynamicReports();
+        });
+
+        // 1. Dynamic User Fetch
+        async function loadCurrentUser() {
+            try {
+                const res = await fetch('/api/hr/current-user');
+                if (res.ok) {
+                    const data = await res.json();
+                    loggedInUserName = data.name || data.username || data.user_name || '';
+                    if (loggedInUserName) {
+                        document.getElementById('topbarUserName').innerText = loggedInUserName;
+                        const initials = loggedInUserName.split(' ').filter(Boolean).map(w => w[0]).join('').substring(0, 2).toUpperCase() || '--';
+                        document.getElementById('topbarUserAvatar').innerText = initials;
+                    }
+                }
+            } catch (e) {}
+        }
+
+        // 2. Switch Tab
+        function switchReportsTab(tabName) {
+            document.getElementById('tabBtnReports').classList.toggle('active', tabName === 'reports');
+            document.getElementById('tabBtnDownloads').classList.toggle('active', tabName === 'downloads');
+
+            document.getElementById('tabContentReports').style.display = tabName === 'reports' ? 'block' : 'none';
+            document.getElementById('tabContentDownloads').style.display = tabName === 'downloads' ? 'block' : 'none';
+
+            if (tabName === 'downloads') fetchDownloadHistory();
+        }
+
+        // 3. Dynamic Fetch from tblMisreportMaster
+        async function fetchDynamicReports() {
+            try {
+                const res = await fetch('/api/hr/dynamic-reports-list');
+                const data = await res.json();
+
+                if (data.success && data.reports && data.reports.length > 0) {
+                    allReports = data.reports;
+                    renderReportsByCategory(allReports);
+                } else {
+                    document.getElementById('dynamicReportsContainer').innerHTML = `
+                        <div style="text-align: center; padding: 40px; color: #94a3b8; background: #fff; border-radius: 8px; border: 1px dashed #cbd5e1;">
+                            <i class="fa-regular fa-folder-open" style="font-size: 2rem; margin-bottom: 8px; color: #cbd5e1;"></i>
+                            <div>No active reports configured in <code>tblMisreportMaster</code> table.</div>
+                        </div>
+                    `;
+                }
+            } catch (err) {
+                document.getElementById('dynamicReportsContainer').innerHTML = `
+                    <div style="text-align: center; padding: 30px; color: #ef4444;">
+                        Failed to connect with <code>tblMisreportMaster</code> database table.
+                    </div>
+                `;
+            }
+        }
+
+        function renderReportsByCategory(reportList) {
+            const container = document.getElementById('dynamicReportsContainer');
+            container.innerHTML = '';
+
+            const groups = {};
+            reportList.forEach(r => {
+                const grp = r.group_name || 'General Reports';
+                if (!groups[grp]) groups[grp] = [];
+                groups[grp].push(r);
+            });
+
+            for (let [groupName, items] of Object.entries(groups)) {
+                let cardsHtml = '';
+                items.forEach(r => {
+                    const backdateInfo = r.back_date_allow === 'Y' 
+                        ? `<span><i class="fa-regular fa-calendar-check" style="color:#16a34a;"></i> Max Backdate: ${r.max_back_day} Days</span>` 
+                        : `<span style="color:#94a3b8;"><i class="fa-solid fa-ban"></i> No Backdate</span>`;
+
+                    cardsHtml += `
+                        <div class="report-card" data-title="${r.display_name.toLowerCase()}" data-actual="${r.actual_name.toLowerCase()}">
+                            <div class="report-info">
+                                <i class="fa-regular fa-file-lines report-icon"></i>
+                                <div>
+                                    <div class="report-title-text">${r.display_name}</div>
+                                    <div class="report-desc-text">
+                                        <span>Source View: <span class="view-code-tag">${r.actual_name}</span></span>
+                                        <span>&bull;</span>
+                                        ${backdateInfo}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="report-actions">
+                                <button class="btn-view-preview" onclick="openPreviewModal('${r.display_name.replace(/'/g, "\\'")}', '${r.actual_name}')">
+                                    <i class="fa-regular fa-eye"></i> View & Customize
+                                </button>
+                                <!-- 🎯 Button renamed from Generate to Download -->
+                                <a href="/api/hr/export-view-data?actual_name=${encodeURIComponent(r.actual_name)}&report_name=${encodeURIComponent(r.display_name)}&user_name=${encodeURIComponent(loggedInUserName)}" class="btn-generate" onclick="setTimeout(fetchDownloadHistory, 1000)">
+                                    <i class="fa-solid fa-download"></i> Download
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                container.innerHTML += `
+                    <div class="category-block">
+                        <div class="category-title">
+                            ${groupName}
+                            <span class="category-badge">${items.length}</span>
+                        </div>
+                        <div class="report-card-list">
+                            ${cardsHtml}
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // 🚀 4. Screen Preview Modal with Customizer & Server-side Filters
+        function openPreviewModal(displayName, actualName) {
+            currentModalTitle = displayName;
+            currentModalView = actualName;
+
+            document.getElementById('modalReportTitle').innerText = displayName;
+            document.getElementById('modalReportSource').innerHTML = `Source View: <code>${actualName}</code>`;
+            document.getElementById('printReportSubtitle').innerText = `${displayName} - ${new Date().toLocaleDateString('en-GB')}`;
+            
+            document.getElementById('reportPreviewModal').style.display = 'flex';
+            document.getElementById('inModalFilterInput').value = '';
+
+            // Reset Filters on Modal Open
+            document.getElementById('modalFilterFromDate').value = '';
+            document.getElementById('modalFilterToDate').value = '';
+            document.getElementById('chkAllBranchBypass').checked = false;
+
+            executePreviewQuery();
+        }
+
+        async function applyModalFilters() {
+            executePreviewQuery();
+        }
+
+        function resetModalFilters() {
+            document.getElementById('modalFilterFromDate').value = '';
+            document.getElementById('modalFilterToDate').value = '';
+            document.getElementById('chkAllBranchBypass').checked = false;
+            executePreviewQuery();
+        }
+
+        async function executePreviewQuery() {
+            const fromDate = document.getElementById('modalFilterFromDate').value;
+            const toDate = document.getElementById('modalFilterToDate').value;
+            const isAllBranch = document.getElementById('chkAllBranchBypass').checked;
+            
+            // 🎯 Agar All Branch checked hai toh branch_id bypass ho jayega
+            const activeBranchId = isAllBranch ? '' : (localStorage.getItem('active_branch_id') || '');
+
+            document.getElementById('previewLoader').style.display = 'block';
+            document.getElementById('previewTable').style.display = 'none';
+
+            let url = `/api/hr/preview-view-data?actual_name=${encodeURIComponent(currentModalView)}`;
+            if (fromDate && toDate) url += `&from_date=${fromDate}&to_date=${toDate}`;
+            if (activeBranchId) url += `&branch_id=${activeBranchId}`;
+
+            let downloadUrl = `/api/hr/export-view-data?actual_name=${encodeURIComponent(currentModalView)}&report_name=${encodeURIComponent(currentModalTitle)}&user_name=${encodeURIComponent(loggedInUserName)}`;
+            if (fromDate && toDate) downloadUrl += `&from_date=${fromDate}&to_date=${toDate}`;
+            if (activeBranchId) downloadUrl += `&branch_id=${activeBranchId}`;
+            
+            document.getElementById('btnDownloadFromModal').href = downloadUrl;
+
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+
+                if (data.success && data.columns) {
+                    rawPreviewColumns = data.columns;
+                    rawPreviewRows = data.rows;
+                    activeColumnsMask = rawPreviewColumns.map(() => true); // All visible by default
+
+                    buildColumnPickerUI();
+                    renderCustomizedTable();
+
+                    document.getElementById('previewLoader').style.display = 'none';
+                    document.getElementById('previewTable').style.display = 'table';
+                    
+                    const branchStatusText = isAllBranch ? '(All Branches)' : '(Current Branch)';
+                    document.getElementById('previewCountBadge').innerText = `Total: ${data.total_count} records loaded ${branchStatusText}`;
+                } else {
+                    document.getElementById('previewLoader').innerHTML = `<div style="color:#ef4444;">${data.error || 'Failed to fetch report'}</div>`;
+                }
+            } catch (err) {
+                document.getElementById('previewLoader').innerHTML = `<div style="color:#ef4444;">Network Error loading preview!</div>`;
+            }
+        }
+
+        // Build Column Checkboxes
+        function buildColumnPickerUI() {
+            const container = document.getElementById('columnCheckboxesContainer');
+            container.innerHTML = '';
+
+            rawPreviewColumns.forEach((col, idx) => {
+                container.innerHTML += `
+                    <label class="col-chk-label">
+                        <input type="checkbox" checked onchange="toggleColumnVisibility(${idx}, this.checked)">
+                        <span>${col}</span>
+                    </label>
+                `;
+            });
+            updateVisibleColCountText();
+        }
+
+        function toggleColumnVisibility(colIndex, isChecked) {
+            activeColumnsMask[colIndex] = isChecked;
+            renderCustomizedTable();
+            updateVisibleColCountText();
+        }
+
+        function updateVisibleColCountText() {
+            const visible = activeColumnsMask.filter(Boolean).length;
+            document.getElementById('visibleColCount').innerText = `Showing ${visible} of ${rawPreviewColumns.length} columns`;
+        }
+
+        function toggleColumnPickerDropdown(e) {
+            e.stopPropagation();
+            const menu = document.getElementById('columnCheckboxesContainer');
+            menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
+        }
+
+        window.addEventListener('click', () => {
+            const menu = document.getElementById('columnCheckboxesContainer');
+            if (menu) menu.style.display = 'none';
+        });
+
+        // Render Table based on Active Columns
+        function renderCustomizedTable() {
+            const thead = document.getElementById('previewTableHead');
+            const tbody = document.getElementById('previewTableBody');
+
+            // Header
+            let thHtml = '<tr>';
+            rawPreviewColumns.forEach((col, idx) => {
+                if (activeColumnsMask[idx]) {
+                    thHtml += `<th>${col}</th>`;
+                }
+            });
+            thHtml += '</tr>';
+            thead.innerHTML = thHtml;
+
+            // Rows
+            let trHtml = '';
+            rawPreviewRows.forEach(row => {
+                trHtml += '<tr>';
+                row.forEach((cell, idx) => {
+                    if (activeColumnsMask[idx]) {
+                        trHtml += `<td>${cell || '-'}</td>`;
+                    }
+                });
+                trHtml += '</tr>';
+            });
+            tbody.innerHTML = trHtml;
+        }
+
+        // Table In-line Row Search Filter
+        function filterPreviewTableRows() {
+            const q = document.getElementById('inModalFilterInput').value.toLowerCase().trim();
+            const rows = document.querySelectorAll('#previewTableBody tr');
+            rows.forEach(r => {
+                r.style.display = r.innerText.toLowerCase().includes(q) ? '' : 'none';
+            });
+        }
+
+        function closePreviewModal() {
+            document.getElementById('reportPreviewModal').style.display = 'none';
+        }
+
+        // 5. Download History
+        async function fetchDownloadHistory() {
+            const tbody = document.getElementById('downloadHistoryBody');
+            try {
+                const res = await fetch('/api/hr/download-history');
+                const data = await res.json();
+
+                if (data.success && data.history && data.history.length > 0) {
+                    tbody.innerHTML = '';
+                    data.history.forEach(h => {
+                        tbody.innerHTML += `
+                            <tr>
+                                <td style="font-weight: 600; color: #0f172a;">${h.report_name}</td>
+                                <td><code>${h.actual_name}</code></td>
+                                <td>${h.downloaded_by}</td>
+                                <td style="color: #64748b;">${h.downloaded_on}</td>
+                                <td>
+                                    <span style="background: #dcfce7; color: #166534; font-weight: 700; font-size: 0.75rem; padding: 3px 8px; border-radius: 12px;">
+                                        ${h.status}
+                                    </span>
+                                </td>
+                                <td style="text-align: right;">
+                                    <a href="/api/hr/export-view-data?actual_name=${encodeURIComponent(h.actual_name)}&report_name=${encodeURIComponent(h.report_name)}&user_name=${encodeURIComponent(loggedInUserName)}" style="color: #2563eb; text-decoration: none; font-weight: 700; font-size: 0.82rem;">
+                                        <i class="fa-solid fa-arrow-rotate-right"></i> Re-download
+                                    </a>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 40px; color: #94a3b8;">No recent downloads recorded.</td></tr>`;
+                }
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 30px; color: #ef4444;">Failed to load download history.</td></tr>`;
+            }
+        }
+
+        function filterReportsUI() {
+            const q = document.getElementById('reportSearchInput').value.toLowerCase().trim();
+            document.querySelectorAll('.report-card').forEach(card => {
+                const title = card.getAttribute('data-title');
+                const actual = card.getAttribute('data-actual');
+                card.style.display = (title.includes(q) || actual.includes(q)) ? 'flex' : 'none';
+            });
+        }
+    </script>
+</body>
+</html>

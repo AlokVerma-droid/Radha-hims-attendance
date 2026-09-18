@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscriptions - Radha HIMS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: #f8fafc; color: #1e293b; display: flex; height: 100vh; overflow: hidden; }
+        .main-wrapper { flex: 1; display: flex; flex-direction: column; height: 100vh; background: #f8fafc; min-width: 0; overflow-y: auto; }
+        .content-body { padding: 32px 36px 80px 36px; max-width: 1100px; width: 100%; margin: 0 auto; }
+        .page-header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
+        .back-link { color: #2563eb; text-decoration: none; font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px; }
+        .page-title { font-size: 1.5rem; font-weight: 700; color: #0f172a; }
+        .section-heading { font-size: 1.1rem; font-weight: 700; color: #0f172a; margin-bottom: 14px; margin-top: 24px; }
+        .sub-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; margin-bottom: 16px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
+        .plan-item { padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; }
+        .plan-item:last-child { border-bottom: none; }
+        .plan-name { font-size: 0.95rem; font-weight: 700; color: #1e293b; }
+        .plan-meta { font-size: 0.85rem; color: #64748b; font-weight: 500; display: flex; gap: 24px; }
+        .billing-item { padding: 20px 24px; border-bottom: 1px solid #f1f5f9; }
+        .billing-item:last-child { border-bottom: none; }
+        .billing-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .billing-date { font-size: 0.95rem; font-weight: 700; color: #1e293b; }
+        .billing-order { font-size: 0.88rem; color: #64748b; font-weight: 600; }
+        .billing-amount { font-size: 1rem; font-weight: 700; color: #0f172a; }
+        .btn-download { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; padding: 6px 14px; border-radius: 6px; font-weight: 600; font-size: 0.85rem; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: 0.15s; }
+        .btn-download:hover { background: #dbeafe; }
+        .purchase-details { background: #f8fafc; padding: 12px 16px; border-radius: 8px; margin-top: 12px; font-size: 0.85rem; color: #475569; }
+    </style>
+</head>
+<body>
+
+    {% include 'sidebar.html' %}
+
+    <div class="main-wrapper">
+        <div class="content-body">
+            <div class="page-header">
+                <a href="/hr/settings" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back</a>
+                <h1 class="page-title">Subscriptions</h1>
+            </div>
+
+            <div class="section-heading">Active Plans</div>
+            <div class="sub-card" id="activePlansContainer">
+                <div class="plan-item"><span class="plan-name">Loading plans...</span></div>
+            </div>
+
+            <div class="section-heading">Billing History</div>
+            <div class="sub-card" id="billingHistoryContainer">
+                <div class="billing-item"><span class="billing-date">Loading billing history...</span></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const res = await fetch('/api/hr/subscription-details');
+                const data = await res.json();
+                
+                if (data.success) {
+                    // Render Active Plans
+                    const plansContainer = document.getElementById('activePlansContainer');
+                    if (data.active_plans.length > 0) {
+                        plansContainer.innerHTML = data.active_plans.map(p => `
+                            <div class="plan-item">
+                                <span class="plan-name">${p.plan_name}</span>
+                                <div class="plan-meta">
+                                    <span>Valid Till ${p.valid_till}</span>
+                                    <span>${p.tenure} - ${p.staff_limit}</span>
+                                </div>
+                            </div>
+                        `).join('');
+                    } else {
+                        plansContainer.innerHTML = `<div class="plan-item"><span class="plan-name">No active plans found.</span></div>`;
+                    }
+
+                    // Render Billing History with Fixed API Prefix Link
+                    const billingContainer = document.getElementById('billingHistoryContainer');
+                    if (data.billing_history.length > 0) {
+                        billingContainer.innerHTML = data.billing_history.map(b => `
+                            <div class="billing-item">
+                                <div class="billing-top">
+                                    <span class="billing-date">${b.order_date}</span>
+                                    <span class="billing-order">Order ID: ${b.order_id}</span>
+                                    <span class="billing-amount">₹ ${b.amount.toLocaleString('en-IN')}</span>
+                                    <a href="/api/hr/invoice/${b.order_id}" target="_blank" class="btn-download">
+                                        <i class="fa-solid fa-file-arrow-down"></i> Download
+                                    </a>
+                                </div>
+                                ${b.purchase_details ? `<div class="purchase-details"><span>${b.purchase_details}</span></div>` : ''}
+                            </div>
+                        `).join('');
+                    } else {
+                        billingContainer.innerHTML = `<div class="billing-item"><span class="billing-date">No billing history available.</span></div>`;
+                    }
+                }
+            } catch (err) {
+                console.error("Error fetching subscriptions:", err);
+            }
+        });
+    </script>
+</body>
+</html>

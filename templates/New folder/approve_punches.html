@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Pending for Approval - Radha HIMS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', -apple-system, sans-serif; }
+        body { background-color: #f4f6f8; color: #2d3748; display: flex; height: 100vh; overflow: hidden; }
+
+        /* Main Content Wrapper (Flex Layout: Adapts automatically with 240px and 68px sidebar) */
+        .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow-y: auto; position: relative; height: 100vh; background: #f4f6f8; min-width: 0; }
+        .top-header { height: 60px; background: #ffffff; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; padding: 0 25px; flex-shrink: 0; }
+        .content-area { padding: 25px; flex: 1; padding-bottom: 90px; overflow-y: auto; }
+
+        .back-link { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; color: #3182ce; font-weight: 600; margin-bottom: 15px; font-size: 0.9rem; }
+        .page-title { font-size: 1.4rem; font-weight: 700; color: #1a202c; margin-bottom: 20px; }
+
+        .date-picker-bar { display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid #cbd5e0; border-radius: 8px; padding: 8px 14px; width: fit-content; margin-bottom: 15px; }
+        .search-staff-input { width: 100%; padding: 10px 14px 10px 38px; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff; font-size: 0.9rem; outline: none; margin-bottom: 20px; }
+        
+        .table-container { background: white; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { background: #f8fafc; padding: 14px 16px; border-bottom: 2px solid #edf2f7; color: #718096; font-size: 0.85rem; text-transform: uppercase; font-weight: 600; }
+        td { padding: 14px 16px; border-bottom: 1px solid #edf2f7; vertical-align: middle; font-size: 0.9rem; }
+        
+        .punch-cell { display: flex; align-items: center; gap: 10px; }
+        .punch-thumb { width: 38px; height: 38px; border-radius: 6px; border: 1px solid #cbd5e0; background: #e2e8f0; display: flex; align-items: center; justify-content: center; color: #718096; }
+        .punch-info { font-size: 0.78rem; color: #718096; line-height: 1.3; }
+        .punch-time { font-weight: bold; color: #2d3748; font-size: 0.88rem; display: block; }
+
+        /* Direct Action Buttons in Row */
+        .btn-row-approve { background: #38a169; color: white; border: none; padding: 6px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.8rem; margin-right: 6px; transition: 0.2s; }
+        .btn-row-approve:hover { background: #2f855a; }
+        .btn-row-reject { background: #e53e3e; color: white; border: none; padding: 6px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.8rem; transition: 0.2s; }
+        .btn-row-reject:hover { background: #c53030; }
+
+        .badge-status { padding: 2px 6px; border-radius: 10px; font-size: 0.65rem; font-weight: bold; background: #c6f6d5; color: #22543d; margin-left: auto; }
+    </style>
+</head>
+<body>
+
+    <!-- 🚀 CENTRALIZED SIDEBAR VIA JINJA2 INCLUDE -->
+    {% include 'sidebar.html' %}
+
+    <!-- MAIN CONTENT -->
+    <div class="main-wrapper">
+        <div class="top-header">
+            <span style="font-weight: 600; color: #2d3748;" id="loggedInUserName">System Admin</span>
+            <div id="userAvatarBadge" style="width: 38px; height: 38px; border-radius: 50%; background: #3182ce; color: white; font-weight: bold; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;">SA</div>
+        </div>
+
+        <div class="content-area">
+            <a href="/hr/attendance-portal" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back</a>
+            <h1 class="page-title">Attendance Pending for Approval</h1>
+
+            <!-- Interactive Date Selector Bar -->
+            <div class="date-picker-bar">
+                <i class="fa-solid fa-chevron-left" style="cursor: pointer; color: #718096;" onclick="navigateDate(-1)"></i>
+                <input type="date" id="approvalDate" onchange="loadPendingPunches()" style="border: none; outline: none; font-weight: bold; color: #2d3748; cursor: pointer; background: transparent;">
+                <i class="fa-solid fa-chevron-right" style="cursor: pointer; color: #718096;" onclick="navigateDate(1)"></i>
+            </div>
+
+            <!-- Search Bar -->
+            <div style="position: relative;">
+                <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 14px; top: 13px; color: #a0aec0;"></i>
+                <input type="text" class="search-staff-input" id="searchStaff" onkeyup="filterApprovalTable()" placeholder="Search Staff by Name...">
+            </div>
+
+            <div style="margin-bottom: 12px; font-weight: 600; color: #4a5568;">
+                Total Pending Records for Selected Date: <span style="background: #edf2f7; padding: 2px 8px; border-radius: 12px; font-size: 0.85rem;" id="pendingCount">0</span>
+            </div>
+
+            <!-- Pending Approvals Table -->
+            <div class="table-container">
+                <table id="approvalTable">
+                    <thead>
+                        <tr>
+                            <th>Staff Name</th>
+                            <th>Status & Punch In</th>
+                            <th>Punch Out</th>
+                            <th style="text-align: right; padding-right: 25px;">Quick Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="approvalTableBody">
+                        <tr><td colspan="4" style="text-align: center; padding: 25px;">Loading Pending Punches from Database...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripting -->
+    <script>
+        const HR_API = `${window.location.origin}/api/hr`;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadUserHeaderInfo(); 
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('approvalDate').value = today;
+            loadPendingPunches();
+        });
+
+        async function loadUserHeaderInfo() {
+            try {
+                const userRes = await fetch(`${HR_API}/current-user`);
+                if (userRes.ok) {
+                    const userData = await userRes.json();
+                    const fullName = userData.name || userData.username || 'System Admin';
+                    const userElem = document.getElementById('loggedInUserName');
+                    if (userElem) userElem.innerText = fullName;
+                    const userInitials = fullName.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase() || 'SA';
+                    const avatarElem = document.getElementById('userAvatarBadge');
+                    if (avatarElem) avatarElem.innerText = userInitials;
+                }
+            } catch (err) {}
+        }
+
+        function navigateDate(days) {
+            const dateInput = document.getElementById('approvalDate');
+            let currentDate = new Date(dateInput.value);
+            currentDate.setDate(currentDate.getDate() + days);
+            dateInput.value = currentDate.toISOString().split('T')[0];
+            loadPendingPunches();
+        }
+
+        async function loadPendingPunches() {
+            try {
+                const selectedDate = document.getElementById('approvalDate').value;
+                const activeBranchId = localStorage.getItem('active_branch_id');
+                const res = await fetch(`${HR_API}/pending-approvals`);
+                const result = await res.json();
+                const tbody = document.getElementById('approvalTableBody');
+                const pendingCount = document.getElementById('pendingCount');
+
+                tbody.innerHTML = '';
+
+                if (result.data && result.data.length > 0) {
+                    let filteredRecords = result.data.filter(item => {
+                        if (!item.attendance_date) return false;
+                        const recordDate = item.attendance_date.split('T')[0];
+                        return recordDate === selectedDate;
+                    });
+
+                    if (activeBranchId) {
+                        filteredRecords = filteredRecords.filter(item => {
+                            const itemBranch = item.Fk_BranchID || item.branch_id || item.BranchID || 1;
+                            return String(itemBranch) === String(activeBranchId);
+                        });
+                    }
+
+                    pendingCount.innerText = filteredRecords.length;
+
+                    if (filteredRecords.length > 0) {
+                        filteredRecords.forEach(item => {
+                            let statusBadgeColor = '#3182ce';
+                            let currentStatus = (item.status || 'PENDING').toUpperCase();
+                            
+                            if (currentStatus === 'LEAVE') statusBadgeColor = '#805ad5';
+                            else if (currentStatus === 'ABSENT') statusBadgeColor = '#e53e3e';
+                            else if (currentStatus === 'HALF_DAY') statusBadgeColor = '#d69e2e';
+                            else if (currentStatus === 'PRESENT') statusBadgeColor = '#38a169';
+
+                            tbody.innerHTML += `
+                                <tr id="row-${item.id}">
+                                    <td>
+                                        <strong style="font-size: 1rem; color: #1a202c;">${item.emp_name}</strong><br>
+                                        <span style="font-size:0.68rem; font-weight:bold; background:${statusBadgeColor}; color:#fff; padding:2px 6px; border-radius:4px; display:inline-block; margin-top:3px;">${currentStatus}</span>
+                                    </td>
+                                    <td>
+                                        <div class="punch-cell">
+                                            <div class="punch-thumb"><i class="fa-solid fa-arrow-right-to-bracket" style="color: #38a169;"></i></div>
+                                            <div class="punch-info">
+                                                <span class="punch-time">${item.in_time || item.attendance_date || 'N/A'}</span>
+                                                <small style="color: #718096;">Date: ${selectedDate}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="punch-cell">
+                                            <div class="punch-thumb"><i class="fa-solid fa-arrow-right-from-bracket" style="color: #e53e3e;"></i></div>
+                                            <div class="punch-info">
+                                                <span class="punch-time">${item.out_time || 'N/A'}</span>
+                                                <small style="color: #718096;">Office Shift</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td style="text-align: right; padding-right: 20px;">
+                                        <button class="btn-row-approve" onclick="singleAction(${item.id}, 'Approved')"><i class="fa-solid fa-check"></i> Approve</button>
+                                        <button class="btn-row-reject" onclick="singleAction(${item.id}, 'Rejected')"><i class="fa-solid fa-xmark"></i> Reject</button>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                    } else {
+                        tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 30px; color: #718096;">No pending punches found for ${selectedDate}.</td></tr>`;
+                    }
+                } else {
+                    pendingCount.innerText = "0";
+                    tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 30px; color: #718096;">No pending attendance approvals found in database.</td></tr>`;
+                }
+            } catch (err) {
+                console.error(err);
+                document.getElementById('approvalTableBody').innerHTML = `<tr><td colspan="4" style="text-align: center; color: red;">Error loading data from database.</td></tr>`;
+            }
+        }
+
+        async function singleAction(id, status) {
+            try {
+                if (status === 'Approved') {
+                    const res = await fetch(`${HR_API}/approve-attendance`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ ids: [id] })
+                    });
+                    const result = await res.json();
+                    if (res.ok && result.success) {
+                        const row = document.getElementById(`row-${id}`);
+                        if (row) row.remove();
+                        
+                        const countSpan = document.getElementById('pendingCount');
+                        let currentCount = parseInt(countSpan.innerText, 10) || 1;
+                        countSpan.innerText = Math.max(0, currentCount - 1);
+                        
+                        if (countSpan.innerText === "0") {
+                            document.getElementById('approvalTableBody').innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 30px; color: #718096;">No pending punches remaining.</td></tr>`;
+                        }
+                    } else {
+                        alert(`Error: ${result.error || 'Could not record approval.'}`);
+                    }
+                } else {
+                    const row = document.getElementById(`row-${id}`);
+                    if (row) row.remove();
+                    alert(`Attendance punch rejected successfully!`);
+                    loadPendingPunches();
+                }
+            } catch (err) {
+                console.error("Action Error:", err);
+                alert("Network error while processing request.");
+            }
+        }
+
+        function filterApprovalTable() {
+            const filter = document.getElementById('searchStaff').value.toLowerCase();
+            const rows = document.querySelectorAll('#approvalTableBody tr');
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(filter) ? '' : 'none';
+            });
+        }
+    </script>
+</body>
+</html>

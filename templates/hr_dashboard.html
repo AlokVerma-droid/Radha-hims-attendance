@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR Dashboard - Radha HIMS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; }
+        body { background-color: #f4f6f8; color: #2d3748; display: flex; height: 100vh; overflow: hidden; }
+
+        /* Main Content Wrapper (Flex layout: Automatically adjusts for 240px and 68px modes) */
+        .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow-y: auto; height: 100vh; background: #f4f6f8; min-width: 0; }
+
+        /* Top Header Navigation */
+        .top-header { height: 60px; background: #ffffff; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; padding: 0 25px; flex-shrink: 0; }
+        .search-bar { position: relative; width: 350px; }
+        .search-bar input { width: 100%; padding: 8px 12px 8px 36px; border: 1px solid #e2e8f0; border-radius: 20px; background: #f8fafc; font-size: 0.88rem; outline: none; }
+        .search-bar i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #a0aec0; }
+        
+        /* Dashboard Body Content */
+        .content-area { padding: 25px; flex: 1; overflow-y: auto; }
+        .page-title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .page-title { font-size: 1.5rem; font-weight: 700; color: #1a202c; }
+
+        .section-box { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+        .section-header { font-size: 1rem; font-weight: 700; color: #2d3748; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+
+        .action-card {
+            text-decoration: none; color: inherit; background: #f8fafc; padding: 14px 18px; border-radius: 10px; border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 14px; transition: all 0.2s ease;
+        }
+        .action-card:hover { background: #ffffff; box-shadow: 0 4px 12px rgba(0,0,0,0.06); border-color: #cbd5e0; transform: translateY(-1px); }
+
+        /* Metrics Row - 8 Columns */
+        .metrics-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 10px; margin-bottom: 20px; }
+        .metric-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px 10px; text-align: center; }
+        .metric-title { font-size: 0.75rem; font-weight: 600; color: #718096; text-transform: uppercase; margin-bottom: 5px; }
+        .metric-value { font-size: 1.3rem; font-weight: bold; color: #2d3748; }
+
+        /* Data Table */
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; }
+        th { background: #f8fafc; padding: 12px 15px; border-bottom: 2px solid #edf2f7; color: #718096; font-weight: 600; }
+        td { padding: 14px 15px; border-bottom: 1px solid #edf2f7; color: #2d3748; }
+        tr:hover { background-color: #f8fafc; }
+
+        .btn-primary { background: #3182ce; color: white; padding: 9px 16px; border: none; border-radius: 6px; font-weight: 600; font-size: 0.88rem; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+        .badge-status { padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <!-- 🎯 CENTRALIZED SIDEBAR (Included from sidebar.html) -->
+    {% include 'sidebar.html' %}
+
+    <div class="main-wrapper">
+        <div class="top-header">
+            <div class="search-bar">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="staffSearchInput" onkeyup="filterStaffTable()" placeholder="Search staff by name or code... (Ctrl+K)">
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span id="loggedInUserName" style="font-weight: 600; color: #2d3748; font-size: 0.95rem;">System Admin</span>
+                <div id="userAvatarBadge" style="width: 38px; height: 38px; border-radius: 50%; background: #3182ce; color: white; font-weight: bold; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; border: 2px solid #ebf8ff;">SA</div>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <div class="page-title-row">
+                <h1 class="page-title">HR Dashboard</h1>
+                <a href="/hr/add-staff" class="btn-primary">
+                    <i class="fa-solid fa-user-plus"></i> Add New Staff
+                </a>
+            </div>
+
+            <div class="section-box">
+                <div class="section-header"><i class="fa-solid fa-list-check" style="color: #3182ce;"></i> Things to do</div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-top: 10px;">
+                    
+                    <a href="/hr/approve-punches" class="action-card">
+                        <i class="fa-solid fa-fingerprint" style="font-size: 26px; color: #3182ce;"></i>
+                        <div>
+                            <strong style="display: block; font-size: 14px; color: #1a202c;">Approve Punches</strong>
+                            <small style="color: #718096; font-size: 13px;" id="pendingDaysText">0 days pending</small>
+                        </div>
+                    </a>
+
+                    <a href="/hr/celebrations" class="action-card">
+                        <i class="fa-solid fa-cake-candles" style="font-size: 26px; color: #d69e2e;"></i>
+                        <div>
+                            <strong style="display: block; font-size: 14px; color: #1a202c;">Celebrations</strong>
+                            <small style="color: #718096; font-size: 13px;" id="celebrationsText">No celebrations</small>
+                        </div>
+                    </a>
+
+                    <a href="/hr/add-staff" class="action-card">
+                        <i class="fa-solid fa-user-plus" style="font-size: 26px; color: #38a169;"></i>
+                        <div>
+                            <strong style="display: block; font-size: 14px; color: #1a202c;">New Joinees</strong>
+                            <small style="color: #38a169; font-weight: bold; font-size: 13px;">+ Add New Staff</small>
+                        </div>
+                    </a>
+
+                </div>
+            </div>
+
+            <div class="section-box">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div class="section-header" style="margin: 0;"><i class="fa-solid fa-chart-line" style="color: #3182ce;"></i> Attendance Metrics</div>
+                    <input type="date" id="metricsDateFilter" onchange="loadDashboardData()" style="padding: 4px 8px; border-radius: 6px; border: 1px solid #cbd5e0; font-size: 13px; cursor: pointer;">
+                </div>
+                <div class="metrics-grid">
+                    <div class="metric-card"><div class="metric-title">Present</div><div class="metric-value" id="metricPresent" style="color: #38a169;">0</div></div>
+                    <div class="metric-card"><div class="metric-title">Absent</div><div class="metric-value" id="metricAbsent" style="color: #e53e3e;">0</div></div>
+                    <div class="metric-card"><div class="metric-title">Half Day</div><div class="metric-value" id="metricHalfDay" style="color: #d69e2e;">0</div></div>
+                    <div class="metric-card"><div class="metric-title">Leave</div><div class="metric-value" id="metricLeave" style="color: #5b21b6;">0</div></div>
+                    <div class="metric-card"><div class="metric-title">Unpaid Leave</div><div class="metric-value" id="metricUnpaidLeave" style="color: #991b1b;">0</div></div>
+                    <div class="metric-card"><div class="metric-title">Punched In</div><div class="metric-value" id="metricPunchedIn" style="color: #3182ce;">0</div></div>
+                    <div class="metric-card"><div class="metric-title">Punched Out</div><div class="metric-value" id="metricPunchedOut" style="color: #718096;">0</div></div>
+                    <div class="metric-card"><div class="metric-title">Not Marked</div><div class="metric-value" id="metricNotMarked">0</div></div>
+                </div>
+            </div>
+
+            <div class="section-box">
+                <div class="section-header"><i class="fa-solid fa-address-book" style="color: #3182ce;"></i> Staff Members List</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Emp Code</th>
+                            <th>Staff Name</th>
+                            <th>Department</th>
+                            <th>Designation</th>
+                            <th>Gross Salary</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="empTableBody">
+                        <tr><td colspan="6" style="text-align: center;">Loading Staff Members from Database...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const HR_API = `${window.location.origin}/api/hr`;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const today = new Date().toISOString().split('T')[0];
+            const datePicker = document.getElementById('metricsDateFilter');
+            if (datePicker) datePicker.value = today;
+
+            loadUserTopbarData(); 
+            loadDashboardData();
+        });
+
+        async function loadUserTopbarData() {
+            try {
+                const userRes = await fetch(`${HR_API}/current-user`);
+                if (userRes.ok) {
+                    const userData = await userRes.json();
+                    const fullName = userData.name || userData.username || 'System Admin';
+                    const userElem = document.getElementById('loggedInUserName');
+                    if (userElem) userElem.innerText = fullName;
+                    const userInitials = fullName.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase() || 'SA';
+                    const avatarElem = document.getElementById('userAvatarBadge');
+                    if (avatarElem) avatarElem.innerText = userInitials;
+                }
+            } catch (err) {}
+        }
+
+        async function loadDashboardData() {
+            await loadEmployeesAndMetrics();
+            await loadDashboardCounts();
+        }
+
+        function extractNumericId(codeStr) {
+            if (!codeStr) return 1;
+            const matches = String(codeStr).match(/\d+/);
+            return matches ? parseInt(matches[0], 10) : 1;
+        }
+
+        function parseDateToYMD(dateStr) {
+            if (!dateStr) return null;
+            const d = new Date(dateStr);
+            if (isNaN(d.getTime())) return String(dateStr).split('T')[0];
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${day}`;
+        }
+
+        async function loadEmployeesAndMetrics() {
+            try {
+                const selectedDate = document.getElementById('metricsDateFilter')?.value || new Date().toISOString().split('T')[0];
+                const activeBranchId = localStorage.getItem('active_branch_id'); 
+                
+                const [empRes, attRes] = await Promise.all([
+                    fetch(`${HR_API}/employees`),
+                    fetch(`${HR_API}/attendance`)
+                ]);
+
+                const empData = await empRes.json();
+                const attData = await attRes.json();
+
+                let staffList = empData.employees || empData.data || [];
+                const attList = attData.data || attData.records || [];
+
+                if (activeBranchId) {
+                    staffList = staffList.filter(emp => {
+                        const empBranch = emp.Fk_BranchID || emp.branch_id || emp.BranchID || 1;
+                        return String(empBranch) === String(activeBranchId);
+                    });
+                }
+
+                const tbody = document.getElementById('empTableBody');
+                if (!tbody) return;
+                tbody.innerHTML = '';
+
+                let presentCount = 0;
+                let absentCount = 0;
+                let halfDayCount = 0;
+                let leaveCount = 0;
+                let unpaidLeaveCount = 0; 
+                let punchedInCount = 0;
+                let punchedOutCount = 0;
+                let notMarkedCount = 0;
+
+                if (staffList.length > 0) {
+                    staffList.forEach((emp, index) => {
+                        const empCode = emp.emp_code || emp.EmployeeCode || `EMP${index+1}`;
+                        const empName = emp.emp_name || emp.FullName || 'Unknown';
+                        const dept = emp.department || emp.DepartmentName || 'General';
+                        const desig = emp.designation || emp.Designation || 'Staff';
+                        const salary = emp.salary || emp.GrossSalary || 0;
+                        
+                        const numericEmpId = extractNumericId(empCode) || (index + 1);
+
+                        let matchedAtt = null;
+                        attList.forEach(att => {
+                            const attEmpIdRaw = att.Fk_EmployeeID || att.EmployeeID || att.emp_id || att.EmployeeCode || '';
+                            const attNumericId = extractNumericId(attEmpIdRaw);
+                            const attDateStr = parseDateToYMD(att.PunchTime || att.AttendanceDate || att.CreatedOn || att.date);
+
+                            if (attNumericId === numericEmpId && attDateStr === selectedDate) {
+                                matchedAtt = att;
+                            }
+                        });
+
+                        let statusBadge = '<span class="badge-status" style="background:#edf2f7; color:#718096;">Not Marked</span>';
+                        if (matchedAtt) {
+                            const st = (matchedAtt.Status || matchedAtt.status || '').toUpperCase();
+                            if (st === 'PRESENT') {
+                                presentCount++;
+                                statusBadge = '<span class="badge-status" style="background: #c6f6d5; color: #22543d;">Present</span>';
+                                punchedInCount++;
+                            } else if (st === 'ABSENT') {
+                                absentCount++;
+                                statusBadge = '<span class="badge-status" style="background: #fed7d7; color: #c53030;">Absent</span>';
+                            } else if (st === 'HALF_DAY') {
+                                halfDayCount++;
+                                statusBadge = '<span class="badge-status" style="background: #feebc8; color: #744210;">Half Day</span>';
+                                punchedInCount++;
+                            } else if (st === 'LEAVE') {
+                                leaveCount++;
+                                statusBadge = '<span class="badge-status" style="background: #ede9fe; color: #5b21b6;">Leave</span>';
+                            } else if (st === 'UNPAID_LEAVE') {
+                                unpaidLeaveCount++; 
+                                statusBadge = '<span class="badge-status" style="background: #fee2e2; color: #991b1b;">Unpaid Leave</span>';
+                            } else {
+                                notMarkedCount++;
+                            }
+
+                            if (matchedAtt.PunchOutTime || matchedAtt.out_time) {
+                                punchedOutCount++;
+                            }
+                        } else {
+                            notMarkedCount++;
+                        }
+
+                        tbody.innerHTML += `
+                            <tr>
+                                <td><b>${empCode}</b></td>
+                                <td>${empName}</td>
+                                <td>${dept}</td>
+                                <td>${desig}</td>
+                                <td>₹${parseFloat(salary).toLocaleString('en-IN')}</td>
+                                <td>${statusBadge}</td>
+                            </tr>
+                        `;
+                    });
+
+                    document.getElementById('metricPresent').innerText = presentCount;
+                    document.getElementById('metricAbsent').innerText = absentCount;
+                    document.getElementById('metricHalfDay').innerText = halfDayCount;
+                    document.getElementById('metricLeave').innerText = leaveCount;
+                    document.getElementById('metricUnpaidLeave').innerText = unpaidLeaveCount; 
+                    document.getElementById('metricPunchedIn').innerText = punchedInCount;
+                    document.getElementById('metricPunchedOut').innerText = punchedOutCount;
+                    document.getElementById('metricNotMarked').innerText = notMarkedCount;
+
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #718096; padding: 20px;">No employee records found for this branch.</td></tr>`;
+                }
+            } catch (error) {
+                console.error('Error loading metrics:', error);
+            }
+        }
+
+        async function loadDashboardCounts() {
+            try {
+                const resPunches = await fetch(`${HR_API}/pending-approvals`);
+                if (resPunches.ok) {
+                    const dataPunches = await resPunches.json();
+                    const pendingElem = document.getElementById('pendingDaysText');
+                    if (pendingElem) {
+                        const records = dataPunches.data || [];
+                        const actualPending = records.filter(r => (r.ApprovedStatus || r.approved_status || 'Pending') === 'Pending');
+                        const count = actualPending.length;
+                        pendingElem.innerText = count > 0 ? `${count} days pending` : '0 days pending';
+                    }
+                }
+
+                const resCeleb = await fetch(`${HR_API}/celebrations?type=birthdays`);
+                if (resCeleb.ok) {
+                    const dataCeleb = await resCeleb.json();
+                    const celebElem = document.getElementById('celebrationsText');
+                    if (celebElem && dataCeleb.data) {
+                        const count = dataCeleb.data.length;
+                        celebElem.innerText = count > 0 ? `${count} celebrations` : 'No celebrations';
+                    }
+                }
+            } catch (err) {}
+        }
+
+        function filterStaffTable() {
+            const input = document.getElementById('staffSearchInput');
+            if (!input) return;
+            const filter = input.value.toLowerCase().trim();
+            const tbody = document.getElementById('empTableBody');
+            if (!tbody) return;
+            const rows = tbody.getElementsByTagName('tr');
+
+            for (let i = 1; i < rows.length; i++) {
+                const codeText = rows[i].getElementsByTagName('td')[0]?.textContent || '';
+                const nameText = rows[i].getElementsByTagName('td')[1]?.textContent || '';
+                const deptText = rows[i].getElementsByTagName('td')[2]?.textContent || '';
+
+                if (codeText.toLowerCase().includes(filter) || nameText.toLowerCase().includes(filter) || deptText.toLowerCase().includes(filter)) {
+                    rows[i].style.display = "";
+                } else {
+                    rows[i].style.display = "none";
+                }
+            }
+        }
+
+        window.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
+                e.preventDefault();
+                const searchInput = document.getElementById('staffSearchInput');
+                if (searchInput) { searchInput.focus(); searchInput.select(); }
+            }
+        });
+    </script>
+</body>
+</html>

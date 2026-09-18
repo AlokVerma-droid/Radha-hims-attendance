@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kiosk Face Verification - Radha HIMS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        
+        body {
+            background-color: #000;
+            color: #fff;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+            cursor: none;
+            user-select: none;
+            transition: background-color 0.5s ease;
+        }
+
+        #webcamVideo {
+            width: 100vw;
+            height: 100vh;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+            transform: scaleX(-1);
+            transition: opacity 0.5s ease;
+        }
+
+        .hr-scanner-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 65vw;
+            max-width: 280px;
+            height: 65vw;
+            max-height: 280px;
+            z-index: 5;
+            pointer-events: none;
+        }
+        .hr-corner { position: absolute; width: 50px; height: 50px; border: 6px solid rgba(255,255,255,0.8); }
+        .hr-corner-tl { top: 0; left: 0; border-right: none; border-bottom: none; border-top-left-radius: 15px; }
+        .hr-corner-tr { top: 0; right: 0; border-left: none; border-bottom: none; border-top-right-radius: 15px; }
+        .hr-corner-bl { bottom: 0; left: 0; border-right: none; border-top: none; border-bottom-left-radius: 15px; }
+        .hr-corner-br { bottom: 0; right: 0; border-left: none; border-top: none; border-bottom-right-radius: 15px; }
+        
+        .instruction-container {
+            position: absolute;
+            bottom: 40px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            z-index: 10;
+            pointer-events: none;
+        }
+        .hr-instruction {
+            color: #fff;
+            background: rgba(0,0,0,0.7);
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            display: inline-block;
+            letter-spacing: 1px;
+        }
+
+        body.flash-success {
+            background-color: #16a34a !important;
+        }
+        body.flash-success #webcamVideo,
+        body.flash-success .hr-scanner-overlay,
+        body.flash-success .instruction-container {
+            opacity: 0;
+        }
+
+        #successDisplay {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 25;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: #fff;
+            padding: 20px;
+            background: rgba(22, 163, 74, 0.95);
+        }
+        #successDisplay i.fa-check-circle {
+            font-size: 6rem;
+            margin-bottom: 20px;
+            color: #fff;
+        }
+        #successStaffName {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            line-height: 1.2;
+        }
+        #successTime {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        #captureCanvas { display: none; }
+    </style>
+</head>
+<body id="scannerBody">
+
+    <video id="webcamVideo" autoplay playsinline muted></video>
+
+    <div class="hr-scanner-overlay" id="scannerOverlay">
+        <div class="hr-corner hr-corner-tl"></div>
+        <div class="hr-corner hr-corner-tr"></div>
+        <div class="hr-corner hr-corner-bl"></div>
+        <div class="hr-corner hr-corner-br"></div>
+    </div>
+
+    <div class="instruction-container" id="instructionContainer">
+        <div class="hr-instruction" id="instructionText">LOOK AT CAMERA</div>
+    </div>
+
+    <div id="successDisplay">
+        <i class="fas fa-check-circle"></i>
+        <div style="font-size: 1.2rem; text-transform: uppercase; letter-spacing: 2px; opacity: 0.8; margin-bottom: 5px;">Thank You</div>
+        <div id="successStaffName">Staff Name</div>
+        <div id="successTime">Attendance Marked at 00:00:00 AM</div>
+    </div>
+
+    <canvas id="captureCanvas"></canvas>
+
+    <script>
+        const HR_API = `${window.location.origin}/api/hr`;
+        const body = document.getElementById('scannerBody');
+        const video = document.getElementById('webcamVideo');
+        const instructionText = document.getElementById('instructionText');
+        const successDisplay = document.getElementById('successDisplay');
+        const successNameDisplay = document.getElementById('successStaffName');
+        const successTimeDisplay = document.getElementById('successTime');
+        
+        let activeStream = null;
+        let isVerifying = false;
+        let scanInterval = null;
+
+        // Multi-tenant parameters stored from Kiosk Setup login
+        const currentClid = localStorage.getItem('kiosk_clid') || '1';
+        const currentBranchId = localStorage.getItem('kiosk_branch_id') || '1';
+
+        window.onload = () => {
+            startCamera();
+            initIndexedDB();
+            window.addEventListener('online', syncOfflineAttendance);
+        };
+
+        async function startCamera() {
+            try {
+                activeStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } } 
+                });
+                video.srcObject = activeStream;
+                video.onplaying = () => {
+                    startDirectScanning();
+                };
+            } catch (err) {
+                console.error("Camera Error:", err);
+                instructionText.textContent = "CAMERA ERROR";
+                instructionText.style.color = "#ff4444";
+            }
+        }
+
+        function startDirectScanning() {
+            if (scanInterval) clearInterval(scanInterval);
+
+            scanInterval = setInterval(() => {
+                if (!isVerifying) {
+                    captureAndVerifyDirectly();
+                }
+            }, 1500);
+        }
+
+        async function captureAndVerifyDirectly() {
+            if (isVerifying) return;
+            isVerifying = true;
+
+            const canvas = document.getElementById('captureCanvas');
+            canvas.width = 480;
+            canvas.height = 360;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imageDataUrl = canvas.toDataURL('image/jpeg', 0.75);
+
+            // 🎯 Dynamic Scanner / Location Name (LocalStorage se uthayega, warna default 'Kiosk Face Scanner' rahega)
+            const scannerLocationName = localStorage.getItem('kiosk_device_name') || 'Kiosk Face Scanner';
+
+            const payload = {
+                image: imageDataUrl,
+                branch_id: currentBranchId,
+                clid: currentClid,
+                location: scannerLocationName, // Dynamic location passed to backend
+                timestamp: new Date().toISOString()
+            };
+
+            // 🎯 Offline Check: Agar net nahi hai toh local storage mein save karo
+            if (!navigator.onLine) {
+                saveToOfflineStorage(payload);
+                handleSuccessfulAttendance("Offline Staff", new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }), "Punch In");
+                return;
+            }
+
+            try {
+                const res = await fetch(`${HR_API}/verify-face`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!res.ok) {
+                    isVerifying = false;
+                    return;
+                }
+
+                const data = await res.json();
+                
+                if (data.success) {
+                    if (scanInterval) clearInterval(scanInterval);
+                    
+                    const rawName = data.employee_name || data.FullName || data.staff_name || data.name || "Staff Member";
+                    const staffName = (rawName && rawName !== "undefined" && rawName !== "null") ? rawName : "Staff Member";
+                    
+                    let formattedTime = data.time;
+                    if (!formattedTime || (!formattedTime.includes("AM") && !formattedTime.includes("PM"))) {
+                        const now = new Date();
+                        formattedTime = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+                    }
+                    
+                    // 🎯 Backend se aane wala type (Punch In / Punch Out) catch kiya gaya hai
+                    const punchType = data.type || "Attendance Marked";
+                    
+                    handleSuccessfulAttendance(staffName, formattedTime, punchType);
+                } else {
+                    isVerifying = false;
+                }
+
+            } catch (e) {
+                console.error("API Error (Saving offline):", e);
+                saveToOfflineStorage(payload);
+                handleSuccessfulAttendance("Offline Staff", new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }), "Punch In");
+            }
+        }
+
+        // --- 🎯 IndexedDB Local Database Setup ---
+        let db;
+        function initIndexedDB() {
+            const request = indexedDB.open('RadhaHIMS_Kiosk_DB', 1);
+            request.onerror = (e) => console.log("IndexedDB error:", e);
+            request.onsuccess = (e) => { 
+                db = e.target.result; 
+                syncOfflineAttendance(); 
+            };
+            request.onupgradeneeded = (e) => {
+                db = e.target.result;
+                if (!db.objectStoreNames.contains('offline_attendance')) {
+                    db.createObjectStore('offline_attendance', { keyPath: 'id', autoIncrement: true });
+                }
+            };
+        }
+
+        function saveToOfflineStorage(data) {
+            if (!db) return;
+            const transaction = db.transaction(['offline_attendance'], 'readwrite');
+            const store = transaction.objectStore('offline_attendance');
+            store.add(data);
+            console.log("Attendance securely saved locally (Offline mode).");
+        }
+
+        async function syncOfflineAttendance() {
+            if (!navigator.onLine || !db) return;
+            const transaction = db.transaction(['offline_attendance'], 'readwrite');
+            const store = transaction.objectStore('offline_attendance');
+            const request = store.getAll();
+
+            request.onsuccess = async () => {
+                const records = request.result;
+                if (records && records.length > 0) {
+                    console.log(`Syncing ${records.length} offline attendance records to server...`);
+                    for (let record of records) {
+                        try {
+                            await fetch(`${HR_API}/verify-face`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(record)
+                            });
+                        } catch (err) {
+                            console.log("Sync failed for a record, will retry later:", err);
+                            return;
+                        }
+                    }
+                    db.transaction(['offline_attendance'], 'readwrite').objectStore('offline_attendance').clear();
+                    console.log("All offline attendance successfully synced to server!");
+                }
+            };
+        }
+
+        // 🎯 24/7 TRUE KIOSK SUCCESS LOCK (Displays Punch In / Punch Out & Time properly)
+        function handleSuccessfulAttendance(name, time, type) {
+            body.classList.add('flash-success');
+            
+            const cleanName = (name && name !== "undefined" && name !== "null") ? name : "Staff Member";
+            
+            successNameDisplay.textContent = `Thank You, ${cleanName}`;
+            successTimeDisplay.textContent = `${type} Marked at ${time}`;
+            
+            speakText(`Thank you, ${cleanName}. Your ${type} has been marked.`);
+
+            document.getElementById('scannerOverlay').style.display = 'none';
+            document.getElementById('instructionContainer').style.display = 'none';
+            video.style.display = 'none';
+            successDisplay.style.display = 'flex';
+
+            setTimeout(() => {
+                successDisplay.style.display = 'none';
+                document.getElementById('scannerOverlay').style.display = 'block';
+                document.getElementById('instructionContainer').style.display = 'block';
+                video.style.display = 'block';
+                
+                body.classList.remove('flash-success');
+                instructionText.textContent = "LOOK AT CAMERA";
+                isVerifying = false;
+                startDirectScanning();
+            }, 3000);
+        }
+
+        // 🎯 HELP DESK STYLE HINDI-INDIAN SPEECH SYNTHESIS VOICE FUNCTION
+        function speakText(text) {
+            if ('speechSynthesis' in window) {
+                try {
+                    window.speechSynthesis.cancel();
+                    
+                    const speech = new SpeechSynthesisUtterance(text);
+                    speech.lang = "hi-IN";
+                    speech.rate = 0.9;
+                    speech.pitch = 1.0;
+                    
+                    const voices = window.speechSynthesis.getVoices();
+                    const targetVoice = voices.find(v => v.lang === 'hi-IN' || v.name.includes('Google') || v.name.includes('Natural')) || voices[0];
+                    if (targetVoice) {
+                        speech.voice = targetVoice;
+                    }
+
+                    window.speechSynthesis.speak(speech);
+                } catch (err) {
+                    console.error("Speech synthesis error:", err);
+                }
+            }
+        }
+
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.onvoiceschanged = () => {
+                window.speechSynthesis.getVoices();
+            };
+        }
+    </script>
+</body>
+</html>

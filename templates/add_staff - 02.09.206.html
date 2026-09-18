@@ -1,0 +1,1586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Management & Attendance - Radha HIMS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: #f8fafc; color: #1e293b; display: flex; height: 100vh; overflow: hidden; }
+
+        .sidebar { width: 220px; background: #ffffff; border-right: 1px solid #e2e8f0; display: flex; flex-direction: column; justify-content: space-between; flex-shrink: 0; height: 100vh; }
+        .sidebar-brand { height: 60px; padding: 0 16px; font-size: 0.9rem; font-weight: 600; color: #0f172a; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #f1f5f9; cursor: pointer; position: relative; }
+        .brand-box { display: flex; align-items: center; gap: 10px; overflow: hidden; width: 100%; }
+        .brand-icon { width: 32px; height: 32px; background: #3182ce; color: white; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.85rem; flex-shrink: 0; }
+        .brand-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.95rem; }
+
+        .nav-menu { list-style: none; padding: 12px 8px; overflow-y: auto; flex: 1; }
+        .nav-item { margin-bottom: 2px; }
+        .nav-link { display: flex; align-items: center; gap: 12px; padding: 10px 14px; text-decoration: none; color: #64748b; font-size: 0.88rem; font-weight: 500; border-radius: 8px; transition: 0.15s; }
+        .nav-link:hover, .nav-link.active { background-color: #f1f5f9; color: #2563eb; font-weight: 600; }
+        .nav-link.active { background-color: #eff6ff; }
+        .nav-link i { font-size: 1.05rem; width: 20px; text-align: center; }
+        .badge-new { background: #dcfce7; color: #15803d; font-size: 0.65rem; padding: 1px 6px; border-radius: 10px; font-weight: 700; margin-left: auto; }
+        .sidebar-footer { padding: 14px 16px; border-top: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between; font-size: 0.75rem; color: #94a3b8; }
+
+        .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow-y: auto; height: 100vh; background: #f8fafc; min-width: 0; }
+        .top-header { height: 60px; background: #ffffff; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; flex-shrink: 0; }
+        
+        .global-search { position: relative; width: 420px; }
+        .global-search input { width: 100%; padding: 8px 12px 8px 36px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.88rem; outline: none; background: #ffffff; }
+        .global-search i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
+        .kbd-badge { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 4px; padding: 1px 5px; font-size: 0.68rem; color: #64748b; }
+
+        .header-right { display: flex; align-items: center; gap: 18px; }
+        .user-name-tag { font-weight: 600; font-size: 0.9rem; color: #334155; display: flex; align-items: center; gap: 6px; cursor: pointer; }
+
+        .content-body { padding: 24px 32px; flex: 1; overflow-y: auto; }
+
+        .list-top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .page-title { font-size: 1.35rem; font-weight: 700; color: #0f172a; }
+        .btn-add-staff { background: #2563eb; color: #ffffff; border: none; padding: 9px 18px; border-radius: 6px; font-weight: 600; font-size: 0.88rem; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+        .btn-add-staff:hover { background: #1d4ed8; }
+
+        .action-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .filter-search-box { display: flex; align-items: center; gap: 12px; flex: 1; max-width: 480px; }
+        .search-staff-input { position: relative; flex: 1; }
+        .search-staff-input input { width: 100%; padding: 8px 12px 8px 36px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.88rem; outline: none; }
+        .search-staff-input i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
+
+        .select-all-row { display: flex; align-items: center; gap: 10px; font-size: 0.9rem; font-weight: 600; color: #0f172a; margin-bottom: 16px; }
+        .custom-chk { width: 16px; height: 16px; cursor: pointer; border-radius: 4px; accent-color: #2563eb; }
+
+        .category-label { font-size: 0.88rem; font-weight: 600; color: #64748b; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .cat-count { background: #e2e8f0; color: #475569; padding: 1px 7px; border-radius: 12px; font-size: 0.75rem; }
+
+        .staff-table-list { display: flex; flex-direction: column; gap: 8px; }
+        .staff-card-item { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; transition: 0.15s; }
+        .staff-card-item:hover { border-color: #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+
+        .s-left-info { display: flex; align-items: center; gap: 14px; cursor: pointer; flex: 1; }
+        .s-avatar { width: 34px; height: 34px; border-radius: 50%; background: #f1f5f9; color: #64748b; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; }
+        .s-name-text { font-size: 0.92rem; font-weight: 600; color: #0f172a; transition: 0.15s; }
+        .s-name-text:hover { color: #2563eb; }
+
+        .btn-payment-act { background: #ffffff; border: 1px solid #2563eb; color: #2563eb; padding: 6px 14px; border-radius: 6px; font-weight: 600; font-size: 0.8rem; cursor: pointer; transition: 0.15s; }
+        .btn-payment-act:hover { background: #eff6ff; }
+
+        .back-nav-link { display: inline-flex; align-items: center; gap: 8px; text-decoration: none; color: #2563eb; font-weight: 600; font-size: 0.88rem; margin-bottom: 14px; cursor: pointer; }
+        
+        .p-banner { background: #dbeafe; background-image: radial-gradient(#bfdbfe 1px, transparent 1px); background-size: 12px 12px; border: 1px solid #bfdbfe; border-radius: 10px; padding: 22px 26px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .p-banner-left { display: flex; align-items: center; gap: 18px; }
+        .p-banner-avatar { width: 58px; height: 58px; border-radius: 50%; background: #ffffff; color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; font-weight: bold; border: 2px solid #bfdbfe; cursor: pointer; }
+        .p-title-name { font-size: 1.28rem; font-weight: 700; color: #0f172a; }
+        .p-title-sub { font-size: 0.82rem; color: #475569; font-weight: 500; margin-top: 3px; }
+
+        .actions-dropdown-wrapper { position: relative; display: inline-block; }
+        .btn-actions-dropdown { background: #ffffff; border: 1px solid #cbd5e1; padding: 7px 16px; border-radius: 6px; font-weight: 600; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 8px; color: #334155; }
+        .actions-menu-list { display: none; position: absolute; right: 0; top: 40px; background: white; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 999; width: 175px; padding: 6px; }
+        .actions-menu-item { padding: 9px 12px; font-size: 0.85rem; font-weight: 600; color: #334155; border-radius: 6px; cursor: pointer; transition: 0.15s; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+        .actions-menu-item:hover { background: #f1f5f9; color: #2563eb; }
+
+        .att-top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+        .att-user-title { font-size: 1.35rem; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 6px; }
+
+        .profile-layout-container { display: flex; gap: 24px; align-items: flex-start; }
+
+        .v-tab-menu { width: 210px; display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; }
+        .v-tab-item { padding: 9px 16px; font-size: 0.88rem; font-weight: 500; color: #475569; border-radius: 20px; cursor: pointer; transition: 0.15s; }
+        .v-tab-item:hover { background: #f1f5f9; color: #0f172a; }
+        .v-tab-item.active { background: #eff6ff; color: #2563eb; font-weight: 600; }
+
+        .v-tab-content-wrapper { flex: 1; min-width: 0; }
+        .content-panel-title { font-size: 1.15rem; font-weight: 700; color: #0f172a; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+
+        .info-card-block { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 22px 24px; margin-bottom: 18px; position: relative; }
+        .block-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .block-title { font-size: 0.98rem; font-weight: 700; color: #0f172a; }
+        .btn-block-edit { border: 1px solid #cbd5e1; background: #ffffff; color: #2563eb; padding: 4px 14px; border-radius: 6px; font-weight: 600; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+
+        .data-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px 16px; }
+        .data-field label { font-size: 0.76rem; color: #64748b; font-weight: 500; display: block; margin-bottom: 4px; }
+        .data-field span { font-size: 0.88rem; font-weight: 600; color: #0f172a; }
+
+        .att-control-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+        .month-picker-pill { display: flex; align-items: center; gap: 8px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px 12px; font-weight: 600; font-size: 0.9rem; }
+        .month-arrow-btn { background: none; border: none; cursor: pointer; color: #64748b; padding: 2px 6px; font-size: 0.85rem; }
+        .month-arrow-btn:hover { color: #2563eb; }
+
+        .att-metrics-bar { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 16px; margin-bottom: 16px; flex-wrap: wrap; gap: 14px; }
+        .metric-unit { display: flex; flex-direction: column; gap: 4px; }
+        .metric-unit label { font-size: 0.80rem; color: #64748b; font-weight: 500; display: flex; align-items: center; gap: 4px; }
+        .metric-unit span { font-size: 1.05rem; font-weight: 700; color: #0f172a; }
+        
+        .att-sub-tabs { display: flex; gap: 24px; border-bottom: 2px solid #e2e8f0; margin-bottom: 20px; }
+        .att-tab-link { padding: 8px 0; font-size: 0.88rem; font-weight: 600; color: #64748b; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; }
+        .att-tab-link.active { color: #2563eb; border-bottom-color: #2563eb; }
+
+        .daily-log-list { display: flex; flex-direction: column; gap: 12px; }
+        .daily-log-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; }
+        .daily-left { width: 34%; }
+        .daily-date-title { font-size: 1.05rem; font-weight: 700; color: #0f172a; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+        .daily-time-stat { font-size: 0.82rem; color: #64748b; margin-bottom: 4px; }
+        .daily-location-stat { font-size: 0.78rem; color: #059669; font-weight: 600; margin-top: 2px; display: flex; align-items: center; gap: 4px; cursor: pointer; }
+        .daily-location-stat:hover { text-decoration: underline; }
+
+        .daily-right-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; width: 65%; }
+        .btn-punch-action { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 8px; font-size: 0.80rem; font-weight: 600; color: #475569; cursor: pointer; text-align: center; transition: 0.15s; }
+        .btn-punch-action:hover { border-color: #cbd5e1; background: #ffffff; }
+        
+        .btn-punch-action.active-present { background: #dcfce7 !important; border-color: #16a34a !important; color: #166534 !important; font-weight: 700 !important; }
+        .btn-punch-action.active-halfday { background: #fef3c7 !important; border-color: #d97706 !important; color: #854d0e !important; font-weight: 700 !important; }
+        .btn-punch-action.active-absent { background: #fee2e2 !important; border-color: #dc2626 !important; color: #991b1b !important; font-weight: 700 !important; }
+        .btn-punch-action.active-leave { background: #ede9fe !important; border-color: #7c3aed !important; color: #5b21b6 !important; font-weight: 700 !important; }
+
+        .att-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; margin-top: 12px; }
+        .att-day-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 8px; text-align: center; cursor: pointer; transition: 0.2s; }
+        .att-day-card:hover { border-color: #2563eb; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .att-day-num { font-size: 0.95rem; font-weight: 700; color: #1e293b; margin-bottom: 8px; }
+        .att-status-pill { font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 12px; display: inline-block; }
+        
+        .pill-p { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+        .pill-a { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+        .pill-hd { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+        .pill-l { background: #ede9fe; color: #6d28d9; border: 1px solid #ddd6fe; }
+        .pill-un { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
+
+        .card-wrapper { background: #ffffff; width: 100%; max-width: 860px; padding: 35px 40px; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); margin: 0 auto; }
+        .header-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #edf2f7; padding-bottom: 18px; margin-bottom: 25px; }
+        .page-heading { font-size: 1.35rem; font-weight: 700; color: #1a202c; display: flex; align-items: center; gap: 12px; }
+        .back-btn-add { text-decoration: none; color: #4a5568; background: #edf2f7; padding: 9px 18px; border-radius: 8px; font-weight: 600; font-size: 0.88rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+
+        .section-title { font-size: 1.02rem; font-weight: 700; color: #2b6cb0; margin: 25px 0 16px 0; border-bottom: 2px solid #ebf8ff; padding-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 24px; }
+        .form-group { display: flex; flex-direction: column; gap: 7px; }
+        .form-group.full-width { grid-column: span 2; }
+        .form-group label { font-weight: 600; color: #4a5568; font-size: 0.88rem; }
+        .req-star { color: #e53e3e; font-weight: bold; }
+        .form-group input, .form-group select { padding: 11px 15px; border: 1px solid #cbd5e0; border-radius: 9px; outline: none; font-size: 0.93rem; color: #2d3748; background-color: #fff; }
+
+        .action-bar { display: flex; justify-content: flex-end; gap: 14px; border-top: 2px solid #edf2f7; padding-top: 22px; margin-top: 30px; }
+        .btn-submit { background: #38a169; color: white; border: none; padding: 12px 30px; border-radius: 9px; font-weight: 700; cursor: pointer; font-size: 0.95rem; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-cancel { padding: 12px 24px; border: 1px solid #cbd5e0; background: white; border-radius: 9px; font-weight: 600; color: #4a5568; cursor: pointer; }
+
+        .modal-bg { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.5); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-box { background: #ffffff; width: 100%; max-width: 650px; border-radius: 14px; padding: 30px; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
+        .m-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 15px; margin-bottom: 20px; }
+        .m-title { font-size: 1.2rem; font-weight: 700; color: #0f172a; }
+        .m-close { background: none; border: none; font-size: 1.3rem; cursor: pointer; color: #94a3b8; }
+        .m-form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px 20px; }
+        .m-group { display: flex; flex-direction: column; gap: 6px; }
+        .m-group label { font-size: 0.85rem; font-weight: 600; color: #334155; }
+        .m-group input, .m-group select, .m-group textarea { padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem; outline: none; width: 100%; background: #fff; color: #1e293b; }
+        .btn-modal-save { grid-column: span 2; background: #2563eb; color: white; padding: 12px; border: none; border-radius: 8px; font-weight: 700; margin-top: 15px; cursor: pointer; font-size: 1rem; transition: background 0.2s; }
+        .btn-modal-save:hover { background: #1d4ed8; }
+
+        .img-modal-content { background: white; padding: 20px; border-radius: 12px; max-width: 420px; text-align: center; }
+        .img-modal-content img { width: 100%; border-radius: 8px; margin-top: 15px; max-height: 280px; object-fit: cover; }
+
+        .att-time-modal-box { background: #ffffff; width: 100%; max-width: 480px; border-radius: 12px; padding: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
+        .leave-modal-card { background: white; border-radius: 12px; padding: 24px; width: 100%; max-width: 380px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); text-align: center; }
+        .leave-opt-btn { width: 100%; padding: 12px; border-radius: 8px; font-weight: 700; font-size: 0.92rem; cursor: pointer; border: none; transition: 0.2s; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .leave-opt-paid { background: #ede9fe; color: #5b21b6; border: 1px solid #c4b5fd; }
+        .leave-opt-paid:hover { background: #ddd6fe; }
+        .leave-opt-unpaid { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+        .leave-opt-unpaid:hover { background: #fecaca; }
+    </style>
+</head>
+<body>
+
+    {% include 'sidebar.html' %}
+
+    <div class="main-wrapper">
+        <div class="top-header">
+            <div class="global-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="globalSearchInput" placeholder="Search staff..." onkeyup="filterStaffRowsGlobal(event)">
+                <span class="kbd-badge">Ctrl+K</span>
+            </div>
+            <div class="header-right">
+                <div class="user-name-tag">
+                    <span id="topUserName">Admin</span> 
+                    <div id="userAvatarBadge" style="width: 34px; height: 34px; border-radius: 50%; background: #2563eb; color: white; font-weight: bold; display: flex; align-items: center; justify-content: center; font-size: 0.8rem;" onclick="openProfileImageModal('https://via.placeholder.com/150')">AD</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-body">
+            
+            <div id="viewStaffList">
+                <div class="list-top-bar">
+                    <div class="page-title">Staff List</div>
+                    <button class="btn-add-staff" onclick="showAddStaffView()"><i class="fa-solid fa-user-plus"></i> Add Staff</button>
+                </div>
+
+                <div class="action-row">
+                    <div class="filter-search-box">
+                        <div class="search-staff-input">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="staffFilterInput" placeholder="Search Staff" onkeyup="filterStaffRows()">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="select-all-row">
+                    <input type="checkbox" id="chkSelectAll" class="custom-chk" onchange="toggleSelectAll(this)">
+                    <span>Select All</span>
+                </div>
+
+                <div class="category-label">
+                    Monthly Regular <span class="cat-count" id="badgeTotalStaff">0</span>
+                </div>
+
+                <div class="staff-table-list" id="staffContainer">
+                    <div style="text-align: center; padding: 40px; color: #94a3b8;">Loading staff records from database...</div>
+                </div>
+            </div>
+
+            <div id="viewStaffProfile" style="display: none;">
+                <div class="back-nav-link" onclick="switchToList()"><i class="fa-solid fa-arrow-left"></i> Back</div>
+
+                <div class="p-banner" id="profileHeaderBanner">
+                    <div class="p-banner-left">
+                        <div class="p-banner-avatar" id="txtAvatar" onclick="openProfileImageModal(activeStaffData?.ProfileImage)" title="Click to view photo">--</div>
+                        <div>
+                            <div class="p-title-name" id="txtHeaderName">-</div>
+                            <div class="p-title-sub" id="txtHeaderSub">-</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 🚀 DYNAMIC DEACTIVATE / ACTIVATE TOGGLE BUTTON -->
+                    <div class="actions-dropdown-wrapper">
+                        <button class="btn-actions-dropdown" onclick="toggleActionsDropdown(event)">
+                            Actions <i class="fa-solid fa-chevron-down" style="font-size: 0.75rem;"></i>
+                        </button>
+                        <div class="actions-menu-list" id="actionsMenuList">
+                            <div class="actions-menu-item" id="deactivateActionBtn" onclick="toggleDeactivateStatus()"><i class="fa-solid fa-user-slash"></i> Deactivate Staff</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="att-top-header" id="attendanceTopHeader" style="display: none;">
+                    <div class="att-user-title"><span id="attStaffHeaderName">Staff Name</span> <span style="color:#94a3b8; font-weight:400;">#</span></div>
+                </div>
+
+                <div class="profile-layout-container">
+                    <div class="v-tab-menu">
+                        <div class="v-tab-item active" onclick="switchTabContent('profile', this)">Profile</div>
+                        <div class="v-tab-item" onclick="switchTabContent('attendance', this)">Attendance</div>
+                        <div class="v-tab-item" onclick="switchTabContent('salaryOverview', this)">Salary Overview</div>
+                        <div class="v-tab-item" onclick="switchTabContent('salaryStructure', this)">Salary Structure</div>
+                        <div class="v-tab-item" onclick="switchTabContent('loans', this)">Loans</div>
+                        <div class="v-tab-item" onclick="switchTabContent('leaves', this)">Leave(s)</div>
+                        <div class="v-tab-item" onclick="switchTabContent('claims', this)">Expense Claims</div>
+                        <div class="v-tab-item" onclick="switchTabContent('documents', this)">Document Centre</div>
+                        <div class="v-tab-item" onclick="switchTabContent('assets', this)">Assets</div>
+                        <div class="v-tab-item" onclick="switchTabContent('goals', this)">Goals</div>
+                    </div>
+
+                    <div class="v-tab-content-wrapper">
+                        <div id="tabContentProfile">
+                            <div class="content-panel-title">Profile</div>
+
+                            <div class="info-card-block">
+                                <div class="block-header">
+                                    <div class="block-title">Profile Information</div>
+                                    <button class="btn-block-edit" onclick="openSectionModal('profile')"><i class="fa-solid fa-pen"></i> Edit</button>
+                                </div>
+                                <div class="data-grid-4">
+                                    <div class="data-field"><label>Name</label><span id="d_name">-</span></div>
+                                    <div class="data-field"><label>ID</label><span id="d_id">-</span></div>
+                                    <div class="data-field"><label>Designation</label><span id="d_desig">-</span></div>
+                                    <div class="data-field"><label>Staff Type</label><span id="d_type">-</span></div>
+                                    <div class="data-field"><label>Contact Number</label><span id="d_mobile">-</span></div>
+                                    <div class="data-field"><label>Reporting Manager</label><span id="d_manager">-</span></div>
+                                </div>
+                            </div>
+
+                            <div class="info-card-block">
+                                <div class="block-header">
+                                    <div class="block-title">General Information</div>
+                                    <button class="btn-block-edit" onclick="openSectionModal('general')"><i class="fa-solid fa-pen"></i> Edit</button>
+                                </div>
+                                <div class="data-grid-4">
+                                    <div class="data-field"><label>Salary Cycle</label><span id="d_salary_cycle">-</span></div>
+                                    <div class="data-field"><label>Shift</label><span id="d_shift">-</span></div>
+                                    <div class="data-field"><label>Branch Name</label><span id="d_branch">-</span></div>
+                                    <div class="data-field"><label>Department Name</label><span id="d_department">-</span></div>
+                                    <div class="data-field"><label>Leave Template</label><span id="d_leave_template">-</span></div>
+                                    <div class="data-field"><label>Holiday Template</label><span id="d_holiday_template">-</span></div>
+                                    <div class="data-field"><label>Geofence Area</label><span id="d_geofence">-</span></div>
+                                </div>
+                            </div>
+
+                            <div class="info-card-block">
+                                <div class="block-header">
+                                    <div class="block-title">Personal Information</div>
+                                    <button class="btn-block-edit" onclick="openSectionModal('personal')"><i class="fa-solid fa-pen"></i> Edit</button>
+                                </div>
+                                <div class="data-grid-4">
+                                    <div class="data-field"><label>Email</label><span id="d_email">-</span></div>
+                                    <div class="data-field"><label>Gender</label><span id="d_gender">-</span></div>
+                                    <div class="data-field"><label>Date of Birth</label><span id="d_dob">-</span></div>
+                                    <div class="data-field"><label>Marital Status</label><span id="d_marital">-</span></div>
+                                    <div class="data-field"><label>Blood Group</label><span id="d_blood">-</span></div>
+                                    <div class="data-field"><label>Emergency Contact</label><span id="d_emergency">-</span></div>
+                                    <div class="data-field"><label>Father's Name</label><span id="d_father">-</span></div>
+                                    <div class="data-field"><label>Mother's Name</label><span id="d_mother">-</span></div>
+                                    <div class="data-field"><label>Spouse Name</label><span id="d_spouse">-</span></div>
+                                    <div class="data-field" style="grid-column: span 3;"><label>Current Address</label><span id="d_address">-</span></div>
+                                </div>
+                            </div>
+
+                            <div class="info-card-block">
+                                <div class="block-header">
+                                    <div class="block-title">Employment & Statutory Info</div>
+                                    <button class="btn-block-edit" onclick="openSectionModal('employment')"><i class="fa-solid fa-pen"></i> Edit</button>
+                                </div>
+                                <div class="data-grid-4">
+                                    <div class="data-field"><label>Date of Joining</label><span id="d_doj">-</span></div>
+                                    <div class="data-field"><label>PAN Number</label><span id="d_pan">-</span></div>
+                                    <div class="data-field"><label>Aadhaar Number</label><span id="d_aadhaar">[Aadhaar Redacted]</span></div>
+                                    <div class="data-field"><label>PF Number</label><span id="d_pf">-</span></div>
+                                    <div class="data-field"><label>ESI Number</label><span id="d_esi">-</span></div>
+                                </div>
+                            </div>
+
+                            <div class="info-card-block">
+                                <div class="block-header">
+                                    <div class="block-title">Bank Details</div>
+                                    <button class="btn-block-edit" onclick="openSectionModal('bank')"><i class="fa-solid fa-pen"></i> Edit</button>
+                                </div>
+                                <div class="data-grid-4">
+                                    <div class="data-field"><label>Name of Bank</label><span id="d_bank">-</span></div>
+                                    <div class="data-field"><label>IFSC Code</label><span id="d_ifsc">-</span></div>
+                                    <div class="data-field"><label>Account Number</label><span id="d_acc">-</span></div>
+                                    <div class="data-field"><label>Account Holder Name</label><span id="d_holder">-</span></div>
+                                    <div class="data-field"><label>UPI ID</label><span id="d_upi">-</span></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="tabContentAttendance" style="display: none;">
+                            <div class="att-control-bar">
+                                <div class="month-picker-pill">
+                                    <button class="month-arrow-btn" onclick="navigateAttMonth(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+                                    <span id="attDisplayMonthYear">August 2026</span>
+                                    <button class="month-arrow-btn" onclick="navigateAttMonth(1)"><i class="fa-solid fa-chevron-right"></i></button>
+                                    <i class="fa-regular fa-calendar-days" style="color:#2563eb; margin-left:4px; cursor:pointer;" onclick="openNativeDatePicker()"></i>
+                                    <input type="date" id="nativeAttPicker" style="position:absolute; opacity:0; width:0; height:0;" onchange="selectNativeMonth(this.value)">
+                                </div>
+                                <div id="approvalBanner" style="display: none; align-items: center; gap: 12px; background: #fff; border: 1px solid #cbd5e1; padding: 6px 14px; border-radius: 6px;">
+                                    <span style="font-size: 0.85rem; font-weight: 600; color: #b91c1c;"><i class="fa-solid fa-circle" style="font-size: 8px;"></i> Total Pending for Approval: <span id="pendingCount">0</span></span>
+                                    <button onclick="confirmBulkApproval()" style="background: #2563eb; color: white; border: none; padding: 5px 12px; border-radius: 4px; font-weight: 600; font-size: 0.8rem; cursor: pointer;">Confirm Approval</button>
+                                </div>
+                            </div>
+
+                            <div class="att-metrics-bar">
+                                <div class="metric-unit"><label>Days</label><span id="m_days">0</span></div>
+                                <div class="metric-unit"><label>Present</label><span id="m_present">0</span></div>
+                                <div class="metric-unit"><label>Absent</label><span id="m_absent">0</span></div>
+                                <div class="metric-unit"><label>Half Day</label><span id="m_halfday">0</span></div>
+                                <div class="metric-unit"><label>Leave</label><span id="m_leave">0</span></div>
+                                <div class="metric-unit"><label>Punched In</label><span id="m_punch_in">0</span></div>
+                                <div class="metric-unit"><label>Punched Out</label><span id="m_punch_out">0</span></div>
+                            </div>
+
+                            <div class="att-sub-tabs">
+                                <div class="att-tab-link active" id="tabDailyViewLink" onclick="switchAttViewType('daily')">Daily Attendance View</div>
+                                <div class="att-tab-link" id="tabCalendarViewLink" onclick="switchAttViewType('calendar')">Calendar View</div>
+                            </div>
+
+                            <div id="attDailyLogContainer" class="daily-log-list"></div>
+
+                            <div id="attCalendarContainer" style="display: none;">
+                                <div class="info-card-block">
+                                    <div class="att-grid" id="attCalendarGrid"></div>
+                                </div>
+                                <div style="display: flex; flex-wrap: wrap; gap: 12px; padding: 15px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; margin-top: 15px; font-size: 0.8rem; font-weight: 600; color: #475569;">
+                                    <div style="display: flex; align-items: center; gap: 6px;"><span style="width:10px; height:10px; background:#16a34a; border-radius:50%;"></span> Present</div>
+                                    <div style="display: flex; align-items: center; gap: 6px;"><span style="width:10px; height:10px; background:#0284c7; border-radius:50%;"></span> On Duty</div>
+                                    <div style="display: flex; align-items: center; gap: 6px;"><span style="width:10px; height:10px; background:#dc2626; border-radius:50%;"></span> Absent</div>
+                                    <div style="display: flex; align-items: center; gap: 6px;"><span style="width:10px; height:10px; background:#ca8a04; border-radius:50%;"></span> Half Day</div>
+                                    <div style="display: flex; align-items: center; gap: 6px;"><span style="width:10px; height:10px; background:#7c3aed; border-radius:50%;"></span> Paid Leave</div>
+                                    <div style="display: flex; align-items: center; gap: 6px;"><span style="width:10px; height:10px; background:#0d9488; border-radius:50%;"></span> Holiday</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="tabContentSalaryOverview" style="display: none;">
+                            <div class="content-panel-title">Salary Overview (Auto-Calculated via Database Salary Cycle ID)</div>
+                            <div class="info-card-block">
+                                <div class="data-grid-4">
+                                    <div class="data-field"><label>Gross Base</label><span id="so_gross">₹ 0.00</span></div>
+                                    <div class="data-field"><label>Payable Units</label><span id="so_payable_days">0 Days</span></div>
+                                    <div class="data-field"><label>Net Calculated Salary</label><span id="so_calculated_salary">₹ 0.00</span></div>
+                                    <div class="data-field"><label>Rate Unit</label><span id="so_per_day">₹ 0.00</span></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="tabContentSalaryStructure" style="display: none;">
+                            <div class="content-panel-title">Salary Structure & Breakup</div>
+                            <div class="info-card-block">
+                                <table style="width:100%; border-collapse: collapse;">
+                                    <thead>
+                                        <tr style="text-align:left; border-bottom:1px solid #e2e8f0; color:#64748b;">
+                                            <th style="padding:8px 0;">Component</th>
+                                            <th style="padding:8px 0;">Calculation Formula</th>
+                                            <th style="padding:8px 0;">Monthly Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td style="padding:10px 0;">Basic Salary (50%)</td><td>Base Earnings</td><td id="ss_basic">₹ 0.00</td></tr>
+                                        <tr><td style="padding:10px 0;">House Rent Allowance (30%)</td><td>Allowance</td><td id="ss_hra">₹ 0.00</td></tr>
+                                        <tr><td style="padding:10px 0;">Special Allowance (20%)</td><td>Allowance</td><td id="ss_special">₹ 0.00</td></tr>
+                                        <tr style="font-weight: bold; background: #f8fafc;"><td style="padding:10px 0;">Total CTC (Gross)</td><td>Monthly Gross</td><td id="ss_total">₹ 0.00</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div id="tabContentLoans" style="display: none;">
+                            <div class="content-panel-title">Staff Loans & Advances</div>
+                            {% include 'loans_tab.html' %}
+                        </div>
+
+                        <div id="tabContentLeaves" style="display: none;">
+                            <div class="content-panel-title">Staff Leave Management</div>
+                            {% include 'leaves_tab.html' %}
+                        </div>
+
+                        <div id="tabContentGeneric" style="display: none;">
+                            <div class="content-panel-title" id="genTabTitle">Section</div>
+                            <div class="info-card-block" style="text-align: center; padding: 60px 20px;">
+                                <div style="font-weight: 600; color: #0f172a;" id="genTabMessage">No records available for this staff in database.</div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <div id="viewAddStaffForm" style="display: none;">
+                <div class="card-wrapper">
+                    <div class="header-row">
+                        <div class="page-heading"><i class="fa-solid fa-user-plus" style="color: #3182ce;"></i> Register Staff Profile</div>
+                        <div class="back-btn-add" onclick="switchToList()"><i class="fa-solid fa-arrow-left"></i> Back to Staff List</div>
+                    </div>
+
+                    <form id="standaloneAddStaffForm" onsubmit="registerNewStaff(event)">
+                        <div class="section-title"><i class="fa-solid fa-id-card"></i> Personal Details</div>
+                        <div class="form-grid">
+                            <div class="form-group"><label>Staff Full Name <span class="req-star">*</span></label><input type="text" id="empName" required></div>
+                            <div class="form-group"><label>Mobile Number <span class="req-star">*</span></label><input type="tel" id="empMobile" required></div>
+                            <div class="form-group"><label>Email Address</label><input type="email" id="empEmail"></div>
+                            <div class="form-group"><label>Date of Birth <span class="req-star">*</span></label><input type="date" id="empDob" required></div>
+                        </div>
+
+                        <div class="section-title"><i class="fa-solid fa-briefcase"></i> Employment Info</div>
+                        <div class="form-grid">
+                            <div class="form-group"><label>Department <span class="req-star">*</span></label><select id="deptSelect" required><option value="">-- Select Department --</option></select></div>
+                            <div class="form-group"><label>Branch <span class="req-star">*</span></label><select id="branchSelect" required><option value="">-- Select Branch --</option></select></div>
+                            <div class="form-group full-width"><label>Date of Joining <span class="req-star">*</span></label><input type="date" id="empDoj" required></div>
+                        </div>
+
+                        <div class="section-title"><i class="fa-solid fa-indian-rupee-sign"></i> Salary & Shift Setup</div>
+                        <div class="form-grid">
+                            <div class="form-group"><label>Gross Salary (₹) <span class="req-star">*</span></label><input type="number" id="empSalary" step="0.01" required></div>
+                            <div class="form-group"><label>Payroll Type <span class="req-star">*</span></label><select id="payrollTypeSelect" required><option value="Monthly" selected>Monthly</option><option value="Hourly">Hourly</option></select></div>
+                            <div class="form-group"><label>Assigned Shift *</label><select id="shiftSelect" required><option value="">-- Select Shift --</option></select></div>
+                            <div class="form-group"><label>Geo-Fence Area</label><select id="geoFenceSelect"><option value="">-- Select Geo Area --</option></select></div>
+                        </div>
+
+                        <div class="action-bar">
+                            <div class="btn-cancel" onclick="switchToList()">Cancel</div>
+                            <button type="submit" class="btn-submit"><i class="fa-solid fa-check"></i> Register Staff Member</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- 🖼️ DYNAMIC PUNCH LOG MODAL (NO HARDCODE) -->
+    <div class="modal-bg" id="imageModal" onclick="closeProfileImageModal()">
+        <div class="img-modal-content" onclick="event.stopPropagation()">
+            <div class="m-header">
+                <div class="m-title" id="imgModalTitle">Face Scan Log</div>
+                <button class="m-close" onclick="closeProfileImageModal()">&times;</button>
+            </div>
+            <img id="modalProfileImg" src="" alt="Face Scan Photo" style="display:none;">
+            <div id="modalPunchLogDetails" style="margin-top: 10px; font-size: 0.88rem; color: #475569; text-align: left; background: #f8fafc; padding: 14px; border-radius: 8px;">
+                No logs found for this date!
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-bg" id="attTimeModal">
+        <div class="att-time-modal-box">
+            <div class="m-header">
+                <div class="m-title" id="attModalTitle">Mark Attendance</div>
+                <button class="m-close" onclick="closeAttModal()">&times;</button>
+            </div>
+            <form id="attTimeForm" onsubmit="submitAttendanceWithTime(event)">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px;">
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 6px;">In Time <span class="req-star">*</span></label>
+                        <div style="position: relative;">
+                            <input type="text" id="att_inTime" placeholder="05:00 PM" required style="width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem; outline: none;">
+                            <i class="fa-regular fa-clock" onclick="openTimePickerNative('att_inTime')" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #2563eb; cursor: pointer;" title="Pick Time"></i>
+                            <input type="time" id="picker_inTime" style="position: absolute; opacity: 0; width: 0; height: 0;" onchange="document.getElementById('att_inTime').value = formatTimeTo12Hour(this.value)">
+                        </div>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 6px;">Out Time</label>
+                        <div style="position: relative;">
+                            <input type="text" id="att_outTime" placeholder="--:-- --" style="width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem; outline: none;">
+                            <i class="fa-regular fa-clock" onclick="openTimePickerNative('att_outTime')" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #2563eb; cursor: pointer;" title="Pick Time"></i>
+                            <input type="time" id="picker_outTime" style="position: absolute; opacity: 0; width: 0; height: 0;" onchange="document.getElementById('att_outTime').value = formatTimeTo12Hour(this.value)">
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 6px;">Admin Note / Reason (Optional)</label>
+                    <textarea id="att_adminNote" placeholder="e.g. Approved by Admin Override" rows="2" style="width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem; outline: none;"></textarea>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 20px; background: #f1f5f9; padding: 10px 12px; border-radius: 6px;">
+                    <input type="checkbox" id="att_sendAlert" class="custom-chk" checked>
+                    <label for="att_sendAlert" style="font-size: 0.85rem; font-weight: 600; color: #334155; cursor: pointer;">Send WhatsApp / SMS Alert to Staff</label>
+                </div>
+                <button type="submit" style="width: 100%; background: #2563eb; color: white; padding: 12px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <i class="fa-solid fa-check"></i> Save & Direct Approve
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-bg" id="leaveTypeModal">
+        <div class="leave-modal-card">
+            <div class="m-header" style="margin-bottom: 15px;">
+                <div class="m-title">Select Leave Type</div>
+                <button class="m-close" onclick="document.getElementById('leaveTypeModal').style.display='none'">&times;</button>
+            </div>
+            <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 18px;">Is this leave paid or unpaid?</p>
+            <button type="button" class="leave-opt-btn leave-opt-paid" onclick="applyLeaveChoice('LEAVE')">
+                <i class="fa-solid fa-circle-check"></i> Paid Leave (Salary Given)
+            </button>
+            <button type="button" class="leave-opt-btn leave-opt-unpaid" onclick="applyLeaveChoice('UNPAID_LEAVE')">
+                <i class="fa-solid fa-circle-xmark"></i> Unpaid Leave (Salary Deducted)
+            </button>
+        </div>
+    </div>
+
+    <!-- SECTION-WISE EDIT MODAL -->
+    <div class="modal-bg" id="staffModal">
+        <div class="modal-box">
+            <div class="m-header">
+                <div class="m-title" id="modalTitle">Edit Section</div>
+                <button class="m-close" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="staffForm" onsubmit="saveStaff(event)">
+                <input type="hidden" id="f_empCode">
+                <input type="hidden" id="f_activeSection" value="">
+                <div class="m-form-grid" id="modalFieldsContainer"></div>
+                <button type="submit" class="btn-modal-save">Update Profile Section</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api/hr';
+
+        let staffList = [];
+        let activeStaffData = null;
+        let selectedCalendarDate = new Date(); 
+        let realTodayDate = new Date();      
+        let currentAttView = 'daily';
+        let liveAttendanceMap = {};
+        let pendingAttDate = '';
+        let pendingAttStatus = '';
+
+        function getVal(obj, ...keys) {
+            if (!obj) return '-';
+            for (let k of keys) {
+                if (obj[k] !== undefined && obj[k] !== null && String(obj[k]).trim() !== '' && String(obj[k]) !== 'undefined') {
+                    return obj[k];
+                }
+            }
+            return '-';
+        }
+
+        function getEmpCode(emp) {
+            if (!emp) return '';
+            const val = emp.EmployeeCode || emp.emp_code || emp.id || emp.Id || emp.Pk_EmployeeID || '';
+            return val === '-' ? '' : String(val);
+        }
+
+        function extractNumericId(codeStr) {
+            if (!codeStr) return 1;
+            const matches = String(codeStr).match(/\d+/);
+            return matches ? parseInt(matches[0], 10) : 1;
+        }
+
+        function format12HourAMPM(dateObj) {
+            let hours = dateObj.getHours();
+            let minutes = dateObj.getMinutes();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            const strMinutes = minutes < 10 ? '0' + minutes : minutes;
+            return `${hours}:${strMinutes} ${ampm}`;
+        }
+
+        function formatTimeTo12Hour(time24Str) {
+            if (!time24Str) return '';
+            const parts = time24Str.split(':');
+            let hours = parseInt(parts[0], 10);
+            const minutes = parts[1] || '00';
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            const formattedHours = String(hours).padStart(2, '0');
+            return `${formattedHours}:${minutes} ${ampm}`;
+        }
+
+        function openTimePickerNative(targetInputId) {
+            const pickerId = targetInputId === 'att_inTime' ? 'picker_inTime' : 'picker_outTime';
+            const picker = document.getElementById(pickerId);
+            if (picker) {
+                if (typeof picker.showPicker === 'function') picker.showPicker();
+                else picker.click();
+            }
+        }
+
+        function parseDateToYMD(dateStr) {
+            if (!dateStr) return null;
+            const d = new Date(dateStr);
+            if (isNaN(d.getTime())) return String(dateStr).split('T')[0];
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${day}`;
+        }
+
+        async function loadCurrentUser() {
+            try {
+                const res = await fetch(`${API_BASE}/current-user`);
+                if (res.ok) {
+                    const data = await res.json();
+                    const name = data.name || data.username || data.user_name || 'Admin';
+                    document.getElementById('topUserName').innerText = name;
+                    const initials = name.split(' ').filter(Boolean).map(w => w[0]).join('').substring(0, 2).toUpperCase() || 'AD';
+                    document.getElementById('userAvatarBadge').innerText = initials;
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        let dropdownCache = { branches: [], departments: [], shifts: [], geofences: [], salaryCycles: [] };
+
+        async function loadDropdowns() {
+            try {
+                const resDept = await fetch(`${API_BASE}/departments`);
+                const dataDept = await resDept.json();
+                dropdownCache.departments = dataDept.departments || [];
+
+                const resBranches = await fetch(`${API_BASE}/branches`);
+                const dataBranches = await resBranches.json();
+                dropdownCache.branches = dataBranches.branches || [];
+
+                const resShift = await fetch(`${API_BASE}/shifts`);
+                const dataShift = await resShift.json();
+                dropdownCache.shifts = dataShift.shifts || [];
+
+                const resGeo = await fetch(`${API_BASE}/geofences`);
+                const dataGeo = await resGeo.json();
+                dropdownCache.geofences = dataGeo.geofences || [];
+
+                try {
+                    const resCycle = await fetch(`${API_BASE}/salary-cycles`);
+                    const dataCycle = await resCycle.json();
+                    dropdownCache.salaryCycles = dataCycle.cycles || dataCycle.data || [];
+                } catch (err) {
+                    dropdownCache.salaryCycles = [];
+                }
+
+                const deptSelect = document.getElementById('deptSelect');
+                if (deptSelect) {
+                    deptSelect.innerHTML = '<option value="">-- Select Department --</option>';
+                    dropdownCache.departments.forEach(d => { deptSelect.innerHTML += `<option value="${d.id || d.Pk_DepartmentID}">${d.name || d.DepartmentName}</option>`; });
+                }
+                const branchSelect = document.getElementById('branchSelect');
+                if (branchSelect) {
+                    branchSelect.innerHTML = '<option value="">-- Select Branch --</option>';
+                    dropdownCache.branches.forEach(b => { branchSelect.innerHTML += `<option value="${b.id || b.Pk_BranchID}">${b.name || b.BranchName}</option>`; });
+                }
+                const shiftSelect = document.getElementById('shiftSelect');
+                if (shiftSelect) {
+                    shiftSelect.innerHTML = '<option value="">-- Select Shift --</option>';
+                    dropdownCache.shifts.forEach(s => { shiftSelect.innerHTML += `<option value="${s.id || s.ShiftID}">${s.name || s.ShiftName}</option>`; });
+                }
+                const geoSelect = document.getElementById('geoFenceSelect');
+                if (geoSelect) {
+                    geoSelect.innerHTML = '<option value="">-- Select Geo Area --</option>';
+                    dropdownCache.geofences.forEach(g => { geoSelect.innerHTML += `<option value="${g.id || g.Pk_GeoFenceID}">${g.name || g.GeoFenceName}</option>`; });
+                }
+            } catch (e) {}
+        }
+
+        async function loadStaffDirectory() {
+            try {
+                const activeBranchId = localStorage.getItem('active_branch_id') || '';
+                const url = activeBranchId ? `${API_BASE}/employees?branch_id=${activeBranchId}` : `${API_BASE}/employees`;
+
+                const res = await fetch(url);
+                if (!res.ok) throw new Error("HTTP Status: " + res.status);
+                const data = await res.json();
+                let rawList = data.employees || data.data || [];
+
+                if (activeBranchId) {
+                    staffList = rawList.filter(emp => {
+                        const empBranch = emp.Fk_BranchID || emp.branch_id || emp.BranchID || 1;
+                        return String(empBranch) === String(activeBranchId);
+                    });
+                } else {
+                    staffList = rawList;
+                }
+
+                renderList(staffList);
+            } catch (err) {
+                document.getElementById('staffContainer').innerHTML = `<div style="text-align: center; padding: 30px; color: #ef4444;">Failed to load staff list for this branch.</div>`;
+            }
+        }
+
+        function renderList(list) {
+            const container = document.getElementById('staffContainer');
+            container.innerHTML = '';
+            document.getElementById('badgeTotalStaff').innerText = list.length;
+
+            if (list && list.length > 0) {
+                list.forEach((emp, index) => {
+                    const code = getEmpCode(emp);
+                    const name = getVal(emp, 'FullName', 'EmpName', 'emp_name', 'name');
+                    const isDeactive = String(getVal(emp, 'IsActive', 'is_active', '1')) === '0' || String(emp.Status) === 'Deactive';
+
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'staff-card-item';
+                    itemDiv.style.opacity = isDeactive ? '0.6' : '1';
+                    itemDiv.innerHTML = `
+                        <div class="s-left-info" style="cursor: pointer;">
+                            <input type="checkbox" class="custom-chk staff-chk" onclick="event.stopPropagation()">
+                            <div class="s-avatar" style="${isDeactive ? 'background:#fee2e2; color:#dc2626;' : ''}"><i class="fa-regular fa-user"></i></div>
+                            <div class="s-name-text">${name} ${isDeactive ? '<span style="color:#dc2626; font-size:0.75rem; font-weight:700; margin-left:6px;">(Deactivated)</span>' : ''}</div>
+                        </div>
+                        <button class="btn-payment-act" onclick="event.stopPropagation(); window.location.href='/hr/payments?emp=${encodeURIComponent(code)}'">Add Payment</button>
+                    `;
+
+                    itemDiv.querySelector('.s-left-info').addEventListener('click', () => {
+                        openStaffDetails(code, index);
+                    });
+
+                    container.appendChild(itemDiv);
+                });
+            } else {
+                container.innerHTML = `<div style="text-align: center; padding: 40px; color: #94a3b8;">No staff records found for this branch.</div>`;
+            }
+        }
+
+        function filterStaffRows() {
+            const q = document.getElementById('staffFilterInput').value.toLowerCase().trim();
+            const filtered = staffList.filter(emp => {
+                const name = String(getVal(emp, 'FullName', 'EmpName', 'emp_name')).toLowerCase();
+                const code = String(getEmpCode(emp)).toLowerCase();
+                return name.includes(q) || code.includes(q);
+            });
+            renderList(filtered);
+        }
+
+        function filterStaffRowsGlobal(e) {
+            const q = e.target.value.toLowerCase().trim();
+            const filtered = staffList.filter(emp => {
+                const name = String(getVal(emp, 'FullName', 'EmpName', 'emp_name')).toLowerCase();
+                const code = String(getEmpCode(emp)).toLowerCase();
+                return name.includes(q) || code.includes(q);
+            });
+            renderList(filtered);
+        }
+
+        function toggleSelectAll(chk) {
+            document.querySelectorAll('.staff-chk').forEach(c => c.checked = chk.checked);
+        }
+
+        function showAddStaffView() {
+            document.getElementById('viewStaffList').style.display = 'none';
+            document.getElementById('viewStaffProfile').style.display = 'none';
+            document.getElementById('viewAddStaffForm').style.display = 'block';
+            loadDropdowns();
+        }
+
+        function switchToList() {
+            document.getElementById('viewAddStaffForm').style.display = 'none';
+            document.getElementById('viewStaffProfile').style.display = 'none';
+            document.getElementById('viewStaffList').style.display = 'block';
+            loadStaffDirectory();
+        }
+
+        async function registerNewStaff(e) {
+            e.preventDefault();
+            const payload = {
+                emp_name: document.getElementById('empName').value,
+                mobile_no: document.getElementById('empMobile').value,
+                email: document.getElementById('empEmail').value,
+                dob: document.getElementById('empDob').value,
+                Fk_DepartmentID: document.getElementById('deptSelect').value,
+                Fk_BranchID: document.getElementById('branchSelect').value,
+                doj: document.getElementById('empDoj').value,
+                salary: parseFloat(document.getElementById('empSalary').value) || 0.0,
+                payroll_type: document.getElementById('payrollTypeSelect').value,
+                shift: document.getElementById('shiftSelect').value,
+                geofence_id: document.getElementById('geoFenceSelect').value
+            };
+
+            try {
+                const res = await fetch(`${API_BASE}/add-employee`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const resData = await res.json();
+                if (res.ok && resData.success) {
+                    alert("Staff member registered successfully!");
+                    document.getElementById('standaloneAddStaffForm').reset();
+                    switchToList();
+                } else {
+                    alert("Failed to register staff member: " + (resData.error || "Server Error"));
+                }
+            } catch (err) {
+                alert("Network Error while registering staff: " + err.message);
+            }
+        }
+
+        function openStaffDetails(empCode, index = -1) {
+            let emp = (index >= 0 && staffList[index]) ? staffList[index] : staffList.find(e => getEmpCode(e) === empCode);
+
+            if (emp) {
+                activeStaffData = emp;
+                const name = getVal(emp, 'FullName', 'EmpName', 'emp_name');
+                const code = getEmpCode(emp) || '-';
+                const staffType = getVal(emp, 'StaffType', 'PayrollType', 'staff_type', 'Regular');
+                const salaryCycleVal = getVal(emp, 'SalaryCycle', 'salary_cycle', '-');
+                const salary = parseFloat(getVal(emp, 'Salary', 'salary', '0')) || 0;
+                const isDeactive = String(getVal(emp, 'IsActive', 'is_active', '1')) === '0' || String(emp.Status) === 'Deactive';
+
+                document.getElementById('txtHeaderName').innerText = name;
+                document.getElementById('txtHeaderSub').innerText = `${staffType} (Monthly Regular - Cycle: ${salaryCycleVal}) ${isDeactive ? '[DEACTIVATED]' : ''}`;
+                document.getElementById('attStaffHeaderName').innerText = name;
+
+                const deactivateBtn = document.getElementById('deactivateActionBtn');
+                if (deactivateBtn) {
+                    deactivateBtn.innerHTML = isDeactive ? '<i class="fa-solid fa-user-check"></i> Activate Staff' : '<i class="fa-solid fa-user-slash"></i> Deactivate Staff';
+                }
+
+                const initials = name !== '-' ? name.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase() : 'AB';
+                document.getElementById('txtAvatar').innerText = initials;
+
+                document.getElementById('d_name').innerText = name;
+                document.getElementById('d_id').innerText = code;
+                document.getElementById('d_desig').innerText = getVal(emp, 'Designation', 'DesignationName', 'designation', 'Staff');
+                document.getElementById('d_type').innerText = staffType;
+                document.getElementById('d_mobile').innerText = getVal(emp, 'MobileNo', 'mobile_no', '-');
+                document.getElementById('d_manager').innerText = getVal(emp, 'ReportingManager', 'reporting_manager', '-');
+
+                document.getElementById('d_salary_cycle').innerText = salaryCycleVal;
+                document.getElementById('d_branch').innerText = getVal(emp, 'BranchName', 'branch_name', '-');
+                document.getElementById('d_department').innerText = getVal(emp, 'DepartmentName', 'department', 'General');
+                document.getElementById('d_shift').innerText = getVal(emp, 'ShiftName', 'Shift', 'Morning');
+                document.getElementById('d_leave_template').innerText = getVal(emp, 'LeaveTemplate', 'leave_template', '-');
+                document.getElementById('d_holiday_template').innerText = getVal(emp, 'HolidayTemplate', 'holiday_template', '-');
+                document.getElementById('d_geofence').innerText = getVal(emp, 'GeoFenceName', 'geofence_name', '-');
+
+                document.getElementById('d_email').innerText = getVal(emp, 'Email', 'email', '-');
+                document.getElementById('d_gender').innerText = getVal(emp, 'Gender', 'gender', '-');
+                document.getElementById('d_dob').innerText = getVal(emp, 'DOB', 'Dob', 'dob', '-');
+                document.getElementById('d_marital').innerText = getVal(emp, 'MaritalStatus', 'marital_status', '-');
+                document.getElementById('d_blood').innerText = getVal(emp, 'BloodGroup', 'blood_group', '-');
+                document.getElementById('d_emergency').innerText = getVal(emp, 'EmergencyContact', 'emergency_contact', '-');
+                document.getElementById('d_father').innerText = getVal(emp, 'FatherName', 'father_name', '-');
+                document.getElementById('d_mother').innerText = getVal(emp, 'MotherName', 'mother_name', '-');
+                document.getElementById('d_spouse').innerText = getVal(emp, 'SpouseName', 'spouse_name', '-');
+                
+                document.getElementById('d_address').innerText = getVal(emp, 'CurrentAddress', 'Address', 'address', '-');
+
+                document.getElementById('d_doj').innerText = getVal(emp, 'DateOfJoining', 'Doj', 'doj', '-');
+                document.getElementById('d_pan').innerText = getVal(emp, 'PanNo', 'pan_no', 'pan', '-');
+                document.getElementById('d_aadhaar').innerText = '[Aadhaar Redacted]';
+                document.getElementById('d_pf').innerText = getVal(emp, 'PfNo', 'Fn_pf', 'pf_no', '-');
+                document.getElementById('d_esi').innerText = getVal(emp, 'EsiNo', 'esi_no', '-');
+
+                document.getElementById('d_bank').innerText = getVal(emp, 'BankName', 'bank_name', '-');
+                document.getElementById('d_ifsc').innerText = getVal(emp, 'IfscCode', 'ifsc_code', '-');
+                document.getElementById('d_acc').innerText = getVal(emp, 'AccountNo', 'account_no', '-');
+                document.getElementById('d_holder').innerText = getVal(emp, 'HolderName', 'holder_name', '-');
+                document.getElementById('d_upi').innerText = getVal(emp, 'UpiId', 'upi_id', '-');
+
+                document.getElementById('so_gross').innerText = `₹ ${salary.toLocaleString('en-IN')}`;
+                
+                const cycle = String(salaryCycleVal).toLowerCase();
+                if (cycle.includes('hour')) {
+                    const hourlyRate = (salary / 30 / 8).toFixed(2);
+                    document.getElementById('so_per_day').innerText = `₹ ${hourlyRate} / Hr`;
+                    document.getElementById('so_payable_days').innerText = `160 Hours`;
+                    document.getElementById('so_calculated_salary').innerText = `₹ ${(hourlyRate * 160).toFixed(2)}`;
+                } else {
+                    document.getElementById('so_per_day').innerText = `₹ ${(salary / 30).toFixed(2)} / Day`;
+                    document.getElementById('so_payable_days').innerText = `30 Days`;
+                    document.getElementById('so_calculated_salary').innerText = `₹ ${salary.toFixed(2)}`;
+                }
+
+                document.getElementById('ss_basic').innerText = `₹ ${(salary * 0.5).toFixed(2)}`;
+                document.getElementById('ss_hra').innerText = `₹ ${(salary * 0.3).toFixed(2)}`;
+                document.getElementById('ss_special').innerText = `₹ ${(salary * 0.2).toFixed(2)}`;
+                document.getElementById('ss_total').innerText = `₹ ${salary.toFixed(2)}`;
+
+                document.getElementById('viewAddStaffForm').style.display = 'none';
+                document.getElementById('viewStaffList').style.display = 'none';
+                document.getElementById('viewStaffProfile').style.display = 'block';
+
+                const firstTab = document.querySelector('.v-tab-item');
+                switchTabContent('profile', firstTab);
+            }
+        }
+
+        function toggleActionsDropdown(e) {
+            e.stopPropagation();
+            const menu = document.getElementById('actionsMenuList');
+            if (menu) {
+                menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+            }
+        }
+        window.addEventListener('click', () => {
+            const menu = document.getElementById('actionsMenuList');
+            if (menu) menu.style.display = 'none';
+        });
+
+        async function toggleDeactivateStatus() {
+            if (!activeStaffData) return;
+            const empCode = getEmpCode(activeStaffData);
+            const currentStatus = String(getVal(activeStaffData, 'IsActive', 'is_active', '1')) === '0';
+            const newStatus = currentStatus ? '1' : '0';
+
+            try {
+                const res = await fetch(`${API_BASE}/toggle-deactivate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ emp_id: empCode, is_active: newStatus })
+                });
+                const resData = await res.json();
+                if (res.ok) {
+                    activeStaffData.IsActive = newStatus;
+                    alert(newStatus === '1' ? "Staff reactivated successfully!" : "Staff deactivated! They can no longer login or mark attendance.");
+                    openStaffDetails(empCode);
+                    loadStaffDirectory();
+                } else {
+                    alert("Failed to update status: " + (resData.error || "Server error"));
+                }
+            } catch (err) {
+                alert("Network error: " + err.message);
+            }
+        }
+
+        function openProfileImageModal(imgUrl, dateStr = '', loc = '', adminName = '', remark = '') {
+            const imgElem = document.getElementById('modalProfileImg');
+            const detailsElem = document.getElementById('modalPunchLogDetails');
+            const staffName = activeStaffData ? getVal(activeStaffData, 'FullName', 'EmpName') : 'Staff';
+
+            if (imgUrl && imgUrl !== 'undefined' && imgUrl !== 'null' && imgUrl.startsWith('http')) {
+                imgElem.src = imgUrl;
+                imgElem.style.display = 'block';
+            } else {
+                imgElem.style.display = 'none';
+            }
+
+            if (loc && loc !== '-' && loc.trim() !== '') {
+                let locationDisplay = adminName ? `<span style="color:#2563eb; font-weight:700;">Admin: ${adminName}</span>` : `<i class="fa-solid fa-location-dot" style="color: #059669;"></i> ${loc}`;
+                let remarkDisplay = remark ? `<div style="margin-top:6px; color:#b45309; font-style:italic;">Remark: ${remark}</div>` : '';
+                
+                detailsElem.innerHTML = `
+                    <div style="font-weight: 700; color: #0f172a; margin-bottom: 4px;">Face Scan Log | ${staffName}</div>
+                    <div style="color: #64748b; font-size: 0.8rem; margin-top: 2px;">${locationDisplay}</div>
+                    ${remarkDisplay}
+                    <div style="color: #94a3b8; font-size: 0.75rem; margin-top: 6px;">By ${staffName} on ${dateStr}</div>
+                `;
+            } else {
+                detailsElem.innerHTML = `No logs found for this date!`;
+            }
+
+            document.getElementById('imageModal').style.display = 'flex';
+        }
+        function closeProfileImageModal() {
+            document.getElementById('imageModal').style.display = 'none';
+        }
+
+        function openSectionModal(sectionKey) {
+            if (!activeStaffData) return;
+            const emp = activeStaffData;
+            document.getElementById('f_empCode').value = getEmpCode(emp);
+            document.getElementById('f_activeSection').value = sectionKey;
+
+            const container = document.getElementById('modalFieldsContainer');
+            container.innerHTML = '';
+            let title = '';
+
+            if (sectionKey === 'profile') {
+                title = 'Edit Profile Information';
+                container.innerHTML = `
+                    <div class="m-group"><label>Full Name *</label><input type="text" id="m_name" value="${getVal(emp, 'FullName', 'EmpName', 'emp_name', '')}" required></div>
+                    <div class="m-group"><label>Designation</label><input type="text" id="m_desig" value="${getVal(emp, 'Designation', 'DesignationName', 'designation', '')}"></div>
+                    <div class="m-group"><label>Staff Type</label><input type="text" id="m_type" value="${getVal(emp, 'StaffType', 'staff_type', '')}"></div>
+                    <div class="m-group"><label>Contact Number *</label><input type="tel" id="m_mobile" value="${getVal(emp, 'MobileNo', 'mobile_no', '')}" required></div>
+                    <div class="m-group"><label>Reporting Manager</label><input type="text" id="m_manager" value="${getVal(emp, 'ReportingManager', 'reporting_manager', '')}"></div>
+                `;
+            } else if (sectionKey === 'general') {
+                title = 'Edit General Information';
+                let cycleOptions = '<option value="">-- Select Salary Cycle --</option>';
+                const currentCycle = getVal(emp, 'SalaryCycle', 'salary_cycle', '');
+                if (dropdownCache.salaryCycles && dropdownCache.salaryCycles.length > 0) {
+                    dropdownCache.salaryCycles.forEach(c => {
+                        const cid = c.id || c.CycleID || c;
+                        const cname = c.name || c.CycleName || `Cycle ${cid}`;
+                        const sel = String(cid) === String(currentCycle) ? 'selected' : '';
+                        cycleOptions += `<option value="${cid}" ${sel}>${cname}</option>`;
+                    });
+                } else {
+                    cycleOptions += `<option value="1" ${currentCycle === '1' ? 'selected' : ''}>1</option><option value="2" ${currentCycle === '2' ? 'selected' : ''}>2</option>`;
+                }
+
+                container.innerHTML = `
+                    <div class="m-group"><label>Salary Cycle *</label>
+                        <select id="m_salary_cycle" required>${cycleOptions}</select>
+                    </div>
+                    <div class="m-group"><label>Branch</label><select id="m_branch"><option value="">-- Select Branch --</option></select></div>
+                    <div class="m-group"><label>Department</label><select id="m_dept"><option value="">-- Select Department --</option></select></div>
+                    <div class="m-group"><label>Shift</label><select id="m_shift"><option value="">-- Select Shift --</option></select></div>
+                    <div class="m-group"><label>Geo-Fence Area</label><select id="m_geofence"><option value="">-- Select Geo Area --</option></select></div>
+                `;
+                setTimeout(() => {
+                    fillDropdown('m_branch', dropdownCache.branches, 'Pk_BranchID', 'BranchName', emp.Fk_BranchID);
+                    fillDropdown('m_dept', dropdownCache.departments, 'Pk_DepartmentID', 'DepartmentName', emp.FK_DepartmentID);
+                    fillDropdown('m_shift', dropdownCache.shifts, 'ShiftID', 'ShiftName', emp.FK_ShiftID);
+                    fillDropdown('m_geofence', dropdownCache.geofences, 'Pk_GeoFenceID', 'GeoFenceName', emp.FK_AllowedGeoFenceID);
+                }, 50);
+            } else if (sectionKey === 'personal') {
+                title = 'Edit Personal Information';
+                const currentBlood = getVal(emp, 'BloodGroup', 'blood_group', '');
+                container.innerHTML = `
+                    <div class="m-group"><label>Email Address</label><input type="email" id="m_email" value="${getVal(emp, 'Email', 'email', '')}"></div>
+                    <div class="m-group"><label>Gender</label>
+                        <select id="m_gender">
+                            <option value="">-- Select Gender --</option>
+                            <option value="Male" ${emp.Gender === 'Male' ? 'selected' : ''}>Male</option>
+                            <option value="Female" ${emp.Gender === 'Female' ? 'selected' : ''}>Female</option>
+                            <option value="Other" ${emp.Gender === 'Other' ? 'selected' : ''}>Other</option>
+                        </select>
+                    </div>
+                    <div class="m-group"><label>Date of Birth</label><input type="date" id="m_dob" value="${parseDateToYMD(getVal(emp, 'DOB', 'dob', '')) || ''}"></div>
+                    <div class="m-group"><label>Marital Status</label><input type="text" id="m_marital" value="${getVal(emp, 'MaritalStatus', 'marital_status', '')}"></div>
+                    <div class="m-group"><label>Blood Group</label>
+                        <select id="m_blood">
+                            <option value="">-- Select Blood Group --</option>
+                            <option value="A+" ${currentBlood === 'A+' ? 'selected' : ''}>A+</option>
+                            <option value="A-" ${currentBlood === 'A-' ? 'selected' : ''}>A-</option>
+                            <option value="B+" ${currentBlood === 'B+' ? 'selected' : ''}>B+</option>
+                            <option value="B-" ${currentBlood === 'B-' ? 'selected' : ''}>B-</option>
+                            <option value="AB+" ${currentBlood === 'AB+' ? 'selected' : ''}>AB+</option>
+                            <option value="AB-" ${currentBlood === 'AB-' ? 'selected' : ''}>AB-</option>
+                            <option value="O+" ${currentBlood === 'O+' ? 'selected' : ''}>O+</option>
+                            <option value="O-" ${currentBlood === 'O-' ? 'selected' : ''}>O-</option>
+                        </select>
+                    </div>
+                    <div class="m-group"><label>Emergency Contact</label><input type="text" id="m_emergency" value="${getVal(emp, 'EmergencyContact', 'emergency_contact', '')}"></div>
+                    <div class="m-group"><label>Father's Name</label><input type="text" id="m_father" value="${getVal(emp, 'FatherName', 'father_name', '')}"></div>
+                    <div class="m-group"><label>Mother's Name</label><input type="text" id="m_mother" value="${getVal(emp, 'MotherName', 'mother_name', '')}"></div>
+                    <div class="m-group"><label>Spouse Name</label><input type="text" id="m_spouse" value="${getVal(emp, 'SpouseName', 'spouse_name', '')}"></div>
+                    <div class="m-group" style="grid-column: span 2;"><label>Current Address</label><input type="text" id="m_address" value="${getVal(emp, 'CurrentAddress', 'address', '')}"></div>
+                `;
+            } else if (sectionKey === 'employment') {
+                title = 'Edit Employment & Statutory Info';
+                container.innerHTML = `
+                    <div class="m-group"><label>Date of Joining</label><input type="date" id="m_doj" value="${parseDateToYMD(getVal(emp, 'DateOfJoining', 'doj', '')) || ''}"></div>
+                    <div class="m-group"><label>PAN Number</label><input type="text" id="m_pan" value="${getVal(emp, 'PanNo', 'pan_no', '')}"></div>
+                    <div class="m-group"><label>PF Number</label><input type="text" id="m_pf" value="${getVal(emp, 'PfNo', 'pf_no', '')}"></div>
+                    <div class="m-group"><label>ESI Number</label><input type="text" id="m_esi" value="${getVal(emp, 'EsiNo', 'esi_no', '')}"></div>
+                    <div class="m-group"><label>Gross Monthly Salary (₹)</label><input type="number" step="0.01" id="m_salary" value="${getVal(emp, 'Salary', 'salary', '0')}"></div>
+                `;
+            } else if (sectionKey === 'bank') {
+                title = 'Edit Bank & UPI Details';
+                container.innerHTML = `
+                    <div class="m-group"><label>Name of Bank</label><input type="text" id="m_bank" value="${getVal(emp, 'BankName', 'bank_name', '')}"></div>
+                    <div class="m-group"><label>IFSC Code</label><input type="text" id="m_ifsc" value="${getVal(emp, 'IfscCode', 'ifsc_code', '')}"></div>
+                    <div class="m-group"><label>Account Number</label><input type="text" id="m_acc" value="${getVal(emp, 'AccountNo', 'account_no', '')}"></div>
+                    <div class="m-group"><label>Account Holder Name</label><input type="text" id="m_holder" value="${getVal(emp, 'HolderName', 'holder_name', '')}"></div>
+                    <div class="m-group" style="grid-column: span 2;"><label>UPI ID</label><input type="text" id="m_upi" value="${getVal(emp, 'UpiId', 'upi_id', '')}"></div>
+                `;
+            }
+
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('staffModal').style.display = 'flex';
+        }
+
+        function fillDropdown(elementId, items, valueKey, textKey, selectedVal) {
+            const select = document.getElementById(elementId);
+            if (!select) return;
+            select.innerHTML = '<option value="">-- Select --</option>';
+            items.forEach(item => {
+                const isSelected = String(item[valueKey]) === String(selectedVal) ? 'selected' : '';
+                select.innerHTML += `<option value="${item[valueKey]}" ${isSelected}>${item[textKey]}</option>`;
+            });
+        }
+
+        function closeModal() {
+            document.getElementById('staffModal').style.display = 'none';
+        }
+
+        async function saveStaff(e) {
+            e.preventDefault();
+            const section = document.getElementById('f_activeSection').value;
+            const empCode = document.getElementById('f_empCode').value;
+
+            let payload = { emp_code: empCode, ...activeStaffData };
+
+            if (section === 'profile') {
+                payload.FullName = document.getElementById('m_name').value;
+                payload.Designation = document.getElementById('m_desig').value;
+                payload.StaffType = document.getElementById('m_type').value;
+                payload.MobileNo = document.getElementById('m_mobile').value;
+                payload.ReportingManager = document.getElementById('m_manager').value;
+            } else if (section === 'general') {
+                payload.SalaryCycle = document.getElementById('m_salary_cycle').value;
+                payload.Fk_BranchID = document.getElementById('m_branch').value;
+                payload.FK_DepartmentID = document.getElementById('m_dept').value;
+                payload.FK_ShiftID = document.getElementById('m_shift').value;
+                payload.FK_AllowedGeoFenceID = document.getElementById('m_geofence').value;
+            } else if (section === 'personal') {
+                payload.Email = document.getElementById('m_email').value;
+                payload.Gender = document.getElementById('m_gender').value;
+                payload.DOB = document.getElementById('m_dob').value;
+                payload.MaritalStatus = document.getElementById('m_marital').value;
+                payload.BloodGroup = document.getElementById('m_blood').value;
+                payload.EmergencyContact = document.getElementById('m_emergency').value;
+                payload.FatherName = document.getElementById('m_father').value;
+                payload.MotherName = document.getElementById('m_mother').value;
+                payload.SpouseName = document.getElementById('m_spouse').value;
+                payload.CurrentAddress = document.getElementById('m_address').value;
+            } else if (section === 'employment') {
+                payload.DateOfJoining = document.getElementById('m_doj').value;
+                payload.PanNo = document.getElementById('m_pan').value;
+                payload.PfNo = document.getElementById('m_pf').value;
+                payload.EsiNo = document.getElementById('m_esi').value;
+                payload.Salary = parseFloat(document.getElementById('m_salary').value) || 0.0;
+            } else if (section === 'bank') {
+                payload.BankName = document.getElementById('m_bank').value;
+                payload.IfscCode = document.getElementById('m_ifsc').value;
+                payload.AccountNo = document.getElementById('m_acc').value;
+                payload.HolderName = document.getElementById('m_holder').value;
+                payload.UpiId = document.getElementById('m_upi').value;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/update-employee`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const resData = await res.json();
+                
+                if (res.ok && resData.success) {
+                    closeModal();
+                    await loadStaffDirectory();
+                    openStaffDetails(empCode);
+                    alert("Staff profile updated successfully!");
+                } else {
+                    alert("Failed to update profile: " + (resData.error || "Server error"));
+                }
+            } catch (err) {
+                alert("Network Error while saving: " + err.message);
+            }
+        }
+
+        function switchTabContent(tabKey, el) {
+            document.querySelectorAll('.v-tab-item').forEach(item => item.classList.remove('active'));
+            if (el) el.classList.add('active');
+
+            const allTabIds = ['tabContentProfile', 'tabContentAttendance', 'tabContentSalaryOverview', 'tabContentSalaryStructure', 'tabContentLoans', 'tabContentLeaves', 'tabContentGeneric'];
+            allTabIds.forEach(id => {
+                const dom = document.getElementById(id);
+                if (dom) dom.style.display = 'none';
+            });
+
+            if (tabKey === 'attendance') {
+                document.getElementById('profileHeaderBanner').style.display = 'none';
+                document.getElementById('attendanceTopHeader').style.display = 'flex';
+                document.getElementById('tabContentAttendance').style.display = 'block';
+                fetchLiveStaffAttendance(getEmpCode(activeStaffData));
+            } else if (tabKey === 'loans') {
+                document.getElementById('profileHeaderBanner').style.display = 'flex';
+                document.getElementById('attendanceTopHeader').style.display = 'none';
+                document.getElementById('tabContentLoans').style.display = 'block';
+                const code = getEmpCode(activeStaffData);
+                if (typeof loadStaffLoans === 'function') loadStaffLoans(code);
+            } else if (tabKey === 'leaves') {
+                document.getElementById('profileHeaderBanner').style.display = 'flex';
+                document.getElementById('attendanceTopHeader').style.display = 'none';
+                document.getElementById('tabContentLeaves').style.display = 'block';
+                const code = getEmpCode(activeStaffData);
+                if (typeof loadStaffLeaves === 'function') loadStaffLeaves(code);
+            } else {
+                document.getElementById('profileHeaderBanner').style.display = 'flex';
+                document.getElementById('attendanceTopHeader').style.display = 'none';
+
+                const targetMap = { 'profile': 'tabContentProfile', 'salaryOverview': 'tabContentSalaryOverview', 'salaryStructure': 'tabContentSalaryStructure' };
+                const targetId = targetMap[tabKey] || 'tabContentGeneric';
+                const activeDOM = document.getElementById(targetId);
+                if (activeDOM) activeDOM.style.display = 'block';
+
+                if (targetId === 'tabContentGeneric') {
+                    document.getElementById('genTabTitle').innerText = el ? el.innerText : 'Section';
+                    document.getElementById('genTabMessage').innerText = `No records available for this staff in database.`;
+                }
+            }
+        }
+
+        function switchAttViewType(viewType) {
+            currentAttView = viewType;
+            document.getElementById('tabDailyViewLink').classList.toggle('active', viewType === 'daily');
+            document.getElementById('tabCalendarViewLink').classList.toggle('active', viewType === 'calendar');
+            document.getElementById('attDailyLogContainer').style.display = viewType === 'daily' ? 'flex' : 'none';
+            document.getElementById('attCalendarContainer').style.display = viewType === 'calendar' ? 'block' : 'none';
+        }
+
+        function navigateAttMonth(direction) {
+            selectedCalendarDate.setMonth(selectedCalendarDate.getMonth() + direction);
+            if (activeStaffData) fetchLiveStaffAttendance(getEmpCode(activeStaffData));
+        }
+
+        function openNativeDatePicker() {
+            const dateInput = document.getElementById('nativeAttPicker');
+            dateInput.value = selectedCalendarDate.toISOString().split('T')[0];
+            if (typeof dateInput.showPicker === 'function') dateInput.showPicker();
+            else dateInput.click();
+        }
+
+        function selectNativeMonth(val) {
+            if (val) {
+                selectedCalendarDate = new Date(val);
+                if (activeStaffData) fetchLiveStaffAttendance(getEmpCode(activeStaffData));
+            }
+        }
+
+        async function fetchLiveStaffAttendance(empCode) {
+            const year = selectedCalendarDate.getFullYear();
+            const month = selectedCalendarDate.getMonth() + 1;
+            const monthName = selectedCalendarDate.toLocaleString('default', { month: 'long' });
+            document.getElementById('attDisplayMonthYear').innerText = `${monthName} ${year}`;
+
+            liveAttendanceMap = {};
+            const targetNumericId = extractNumericId(empCode);
+            let pendingCount = 0;
+
+            try {
+                const res = await fetch(`${API_BASE}/attendance`);
+                const data = await res.json();
+                let list = data.data || data.records || [];
+                
+                // Filter by specific employee ID from database
+                list = list.filter(r => {
+                    const rEmpId = r.Fk_EmployeeID || r.EmployeeID || r.emp_id || r.EmployeeCode || r.emp_code;
+                    return extractNumericId(rEmpId) === targetNumericId;
+                });
+
+                list.forEach(r => {
+                    const dateKey = parseDateToYMD(r.PunchTime || r.AttendanceDate || r.attendance_date || r.Date || r.CreatedOn);
+                    const appStatus = r.ApprovalStatus || r.approval_status || 'Approved';
+                    if (String(appStatus).toLowerCase() === 'pending') {
+                        pendingCount++;
+                    }
+
+                    if (dateKey) {
+                        liveAttendanceMap[dateKey] = {
+                            status: (r.Status || r.status || '').toUpperCase(),
+                            in_time: r.PunchInInTime || r.InTime || r.in_time || '10:00 AM',
+                            out_time: r.PunchOutTime || r.OutTime || r.out_time || '',
+                            location: r.Location || r.GeoFenceName || r.BranchName || '',
+                            photo: r.ProfileImage || r.Photo || '',
+                            admin_name: r.AdminName || r.admin_name || '',
+                            admin_remark: r.AdminNote || r.admin_note || r.Remark || '',
+                            approval_status: appStatus,
+                            source: 'Database Record'
+                        };
+                    }
+                });
+            } catch (err) {}
+
+            document.getElementById('pendingCount').innerText = pendingCount;
+            document.getElementById('approvalBanner').style.display = pendingCount > 0 ? 'flex' : 'none';
+
+            renderAttendanceDailyView(year, month - 1, liveAttendanceMap);
+            renderLiveCalendarGrid(year, month - 1, liveAttendanceMap);
+            calculateMetricsAndLiveSalary(year, month - 1, liveAttendanceMap);
+        }
+
+        async function confirmBulkApproval() {
+            try {
+                const res = await fetch(`${API_BASE}/approve-all-attendance`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ emp_id: getEmpCode(activeStaffData) })
+                });
+                if (res.ok) {
+                    alert("All pending attendance records have been successfully approved and salary/metrics updated!");
+                    fetchLiveStaffAttendance(getEmpCode(activeStaffData));
+                } else {
+                    alert("Failed to confirm approval.");
+                }
+            } catch (err) {
+                alert("Error approving attendance: " + err.message);
+            }
+        }
+
+        function calculateMetricsAndLiveSalary(year, monthIndex, attMap) {
+            const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+            const isCurrentMonth = (year === realTodayDate.getFullYear() && monthIndex === realTodayDate.getMonth());
+            const currentDayNumber = isCurrentMonth ? realTodayDate.getDate() : daysInMonth;
+
+            let presentApproved = 0, presentPending = 0, absent = 0, halfday = 0, leave = 0, punchedIn = 0, punchedOut = 0;
+
+            for (let d = 1; d <= currentDayNumber; d++) {
+                const formattedDate = `${year}-${String(monthIndex + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                const rec = attMap[formattedDate];
+                const st = (rec && typeof rec === 'object') ? rec.status : '';
+                const appStatus = (rec && rec.approval_status) ? String(rec.approval_status).toLowerCase() : 'approved';
+
+                if (st === 'PRESENT' || st === 'HALF_DAY') {
+                    if (appStatus === 'approved') {
+                        if (st === 'PRESENT') presentApproved++;
+                        else halfday++;
+                    } else {
+                        presentPending++;
+                    }
+                } else if (st === 'ABSENT') {
+                    absent++;
+                } else if (st === 'LEAVE' || st === 'UNPAID_LEAVE') {
+                    leave++;
+                }
+
+                if (rec && typeof rec === 'object') {
+                    if (rec.in_time && rec.in_time !== 'NA') punchedIn++;
+                    if (rec.out_time) punchedOut++;
+                }
+            }
+
+            document.getElementById('m_days').innerText = currentDayNumber;
+            document.getElementById('m_present').innerHTML = `${presentApproved}${presentPending > 0 ? ` <span style="font-size:0.75rem; color:#b91c1c; font-weight:700;">(+${presentPending} Pending)</span>` : ''}`;
+            document.getElementById('m_absent').innerText = absent;
+            document.getElementById('m_halfday').innerText = halfday;
+            document.getElementById('m_leave').innerText = leave;
+            document.getElementById('m_punch_in').innerText = punchedIn;
+            document.getElementById('m_punch_out').innerText = punchedOut;
+
+            const baseSalary = parseFloat(getVal(activeStaffData, 'Salary', 'salary', '0')) || 0;
+            const perDayRate = baseSalary / daysInMonth;
+            
+            let paidLeaveDays = 0;
+            for (let d = 1; d <= currentDayNumber; d++) {
+                const formattedDate = `${year}-${String(monthIndex + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                const rec = attMap[formattedDate];
+                if (rec && rec.status === 'LEAVE' && String(rec.approval_status).toLowerCase() === 'approved') paidLeaveDays++;
+            }
+
+            const earnedSalary = (presentApproved + (halfday * 0.5) + paidLeaveDays) * perDayRate;
+
+            document.getElementById('so_payable_days').innerText = `${(presentApproved + (halfday * 0.5) + paidLeaveDays).toFixed(1)} Days`;
+            document.getElementById('so_calculated_salary').innerText = `₹ ${earnedSalary.toFixed(2)}`;
+        }
+
+        function renderAttendanceDailyView(year, monthIndex, attMap) {
+            const container = document.getElementById('attDailyLogContainer');
+            container.innerHTML = '';
+
+            const isCurrentMonth = (year === realTodayDate.getFullYear() && monthIndex === realTodayDate.getMonth());
+            const todayDay = realTodayDate.getDate();
+            const maxDay = isCurrentMonth ? todayDay : new Date(year, monthIndex + 1, 0).getDate();
+
+            for (let day = maxDay; day >= 1; day--) {
+                const dObj = new Date(year, monthIndex, day);
+                const formattedDate = `${year}-${String(monthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const rec = attMap[formattedDate] || {};
+                const st = rec.status || 'UNMARKED';
+                const appStatus = rec.approval_status || 'Approved';
+
+                let isLeaveActive = (st === 'LEAVE' || st === 'UNPAID_LEAVE');
+                let leaveBtnText = st === 'UNPAID_LEAVE' ? 'Unpaid Leave' : 'Leave';
+                let locText = rec.location || '-';
+                let dateDisplayStr = `${day} ${dObj.toLocaleDateString('en-GB', { month: 'short' })} | ${dObj.toLocaleDateString('en-GB', { weekday: 'short' })}`;
+
+                let statusBadge = '';
+                if (st !== 'UNMARKED') {
+                    if (String(appStatus).toLowerCase() === 'pending') {
+                        statusBadge = `<span style="font-size:0.75rem; color:#b91c1c; font-weight:700; background:#fee2e2; padding:2px 8px; border-radius:10px; margin-left:8px;">Pending Approval</span>`;
+                    } else {
+                        statusBadge = `<span style="font-size:0.75rem; color:#15803d; font-weight:700; background:#dcfce7; padding:2px 8px; border-radius:10px; margin-left:8px;">Approved</span>`;
+                    }
+                }
+
+                container.innerHTML += `
+                    <div class="daily-log-card">
+                        <div class="daily-left">
+                            <div class="daily-date-title">${dateDisplayStr} ${statusBadge}</div>
+                            <div class="daily-time-stat">${rec.in_time || '0:00'} - ${rec.out_time || 'NA'}</div>
+                            <div class="daily-location-stat" onclick="openProfileImageModal('${rec.photo || ''}', '${dateDisplayStr}', '${locText}', '${rec.admin_name || ''}', '${rec.admin_remark || ''}')"><i class="fa-solid fa-location-dot"></i> ${locText}</div>
+                        </div>
+                        <div class="daily-right-actions">
+                            <button class="btn-punch-action ${st === 'PRESENT' ? 'active-present' : ''}" onclick="quickMarkPunch('${formattedDate}', 'PRESENT')">Present</button>
+                            <button class="btn-punch-action ${st === 'HALF_DAY' ? 'active-halfday' : ''}" onclick="quickMarkPunch('${formattedDate}', 'HALF_DAY')">Half Day</button>
+                            <button class="btn-punch-action ${st === 'ABSENT' ? 'active-absent' : ''}" onclick="quickMarkPunch('${formattedDate}', 'ABSENT')">Absent</button>
+                            <button class="btn-punch-action ${isLeaveActive ? 'active-leave' : ''}" onclick="quickMarkPunch('${formattedDate}', 'LEAVE')">${leaveBtnText}</button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function renderLiveCalendarGrid(year, monthIndex, attMap) {
+            const grid = document.getElementById('attCalendarGrid');
+            grid.innerHTML = '';
+
+            const isCurrentMonth = (year === realTodayDate.getFullYear() && monthIndex === realTodayDate.getMonth());
+            const todayDay = realTodayDate.getDate();
+            const maxDay = isCurrentMonth ? todayDay : new Date(year, monthIndex + 1, 0).getDate();
+
+            for (let day = 1; day <= maxDay; day++) {
+                const formattedDate = `${year}-${String(monthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const rec = attMap[formattedDate] || {};
+                const dbStatus = rec.status || 'UNMARKED';
+                const appStatus = rec.approval_status || 'Approved';
+
+                let statusClass = 'pill-un', statusText = 'Not Marked';
+                if (dbStatus === 'PRESENT') {
+                    statusClass = String(appStatus).toLowerCase() === 'approved' ? 'pill-p' : 'pill-hd';
+                    statusText = String(appStatus).toLowerCase() === 'approved' ? 'Present (P)' : 'Pending (P)';
+                } else if (dbStatus === 'ABSENT') { statusClass = 'pill-a'; statusText = 'Absent (A)'; }
+                else if (dbStatus === 'HALF_DAY') { statusClass = 'pill-hd'; statusText = 'Half Day (HD)'; }
+                else if (dbStatus === 'LEAVE' || dbStatus === 'UNPAID_LEAVE') { statusClass = 'pill-l'; statusText = 'Leave (L)'; }
+
+                grid.innerHTML += `
+                    <div class="att-day-card" onclick="quickMarkPunch('${formattedDate}', 'PRESENT')">
+                        <div class="att-day-num">${day}</div>
+                        <span class="att-status-pill ${statusClass}">${statusText}</span>
+                    </div>
+                `;
+            }
+        }
+
+        function quickMarkPunch(dateStr, status) {
+            const empCode = getEmpCode(activeStaffData);
+            if (!empCode) return;
+            
+            pendingAttDate = dateStr;
+            pendingAttStatus = status;
+
+            if (status === 'LEAVE') {
+                document.getElementById('leaveTypeModal').style.display = 'flex';
+            } else if (status === 'PRESENT' || status === 'HALF_DAY') {
+                const staffName = getVal(activeStaffData, 'FullName', 'EmpName', 'emp_name');
+                const statusTitle = status === 'PRESENT' ? 'Present' : 'Half Day';
+                document.getElementById('attModalTitle').innerText = `${statusTitle}: ${staffName}`;
+                
+                document.getElementById('att_inTime').value = format12HourAMPM(new Date());
+                document.getElementById('att_outTime').value = '';
+                document.getElementById('att_adminNote').value = '';
+                document.getElementById('att_sendAlert').checked = true;
+
+                document.getElementById('attTimeModal').style.display = 'flex';
+            } else {
+                saveDirectAttendance(dateStr, status, '', '', '', true);
+            }
+        }
+
+        async function applyLeaveChoice(leaveStatus) {
+            document.getElementById('leaveTypeModal').style.display = 'none';
+            await saveDirectAttendance(pendingAttDate, leaveStatus, '', '', 'Leave Applied', true);
+        }
+
+        function closeAttModal() {
+            document.getElementById('attTimeModal').style.display = 'none';
+        }
+
+        async function submitAttendanceWithTime(e) {
+            e.preventDefault();
+            const inTime = document.getElementById('att_inTime').value.trim();
+            const outTime = document.getElementById('att_outTime').value.trim();
+            const adminNote = document.getElementById('att_adminNote').value.trim();
+            const sendAlert = document.getElementById('att_sendAlert').checked;
+
+            if (!inTime) {
+                alert("Please provide In Time!");
+                return;
+            }
+
+            closeAttModal();
+            await saveDirectAttendance(pendingAttDate, pendingAttStatus, inTime, outTime, adminNote, sendAlert);
+        }
+
+        async function saveDirectAttendance(dateStr, status, inTime, outTime, adminNote = '', sendAlert = false) {
+            const empCode = getEmpCode(activeStaffData);
+            if (!empCode) return;
+
+            const adminName = document.getElementById('topUserName')?.innerText || 'Admin';
+            const isManualAdmin = adminNote !== '' || attendanceSourceIsAdmin();
+
+            liveAttendanceMap[dateStr] = { 
+                status: status, 
+                in_time: inTime || '10:00 AM', 
+                out_time: outTime, 
+                location: isManualAdmin ? `Admin Override (${adminName})` : 'Face Scan',
+                admin_name: isManualAdmin ? adminName : '',
+                admin_remark: adminNote,
+                approval_status: isManualAdmin ? 'Approved' : 'Pending',
+                source: isManualAdmin ? 'Admin Portal' : 'Mobile Face Scan'
+            };
+
+            const year = selectedCalendarDate.getFullYear();
+            const monthIndex = selectedCalendarDate.getMonth();
+            renderAttendanceDailyView(year, monthIndex, liveAttendanceMap);
+            renderLiveCalendarGrid(year, monthIndex, liveAttendanceMap);
+            calculateMetricsAndLiveSalary(year, monthIndex, liveAttendanceMap);
+
+            await fetch(`${API_BASE}/mark-attendance`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    emp_id: empCode, 
+                    date: dateStr, 
+                    status: status, 
+                    in_time: inTime || '10:00 AM', 
+                    out_time: outTime,
+                    admin_note: adminNote,
+                    admin_name: isManualAdmin ? adminName : '',
+                    send_whatsapp_sms_alert: sendAlert,
+                    approval_status: isManualAdmin ? 'Approved' : 'Pending'
+                })
+            });
+        }
+
+        function attendanceSourceIsAdmin() {
+            return true;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCurrentUser();
+            loadDropdowns();
+            loadStaffDirectory();
+        });
+    </script>
+</body>
+</html>

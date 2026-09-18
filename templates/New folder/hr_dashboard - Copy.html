@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR Dashboard - Radha HIMS</title>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; }
+        body { background-color: #f4f6f8; color: #2d3748; display: flex; height: 100vh; overflow: hidden; }
+
+        /* 🚀 AUTO-HOVER COLLAPSIBLE SIDEBAR */
+        .sidebar { 
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 65px; 
+            background: #ffffff; 
+            border-right: 1px solid #e2e8f0; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: space-between; 
+            flex-shrink: 0; 
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 999;
+            overflow: hidden;
+            box-shadow: 2px 0 8px rgba(0,0,0,0.03);
+        }
+
+        .sidebar:hover { 
+            width: 240px; 
+            box-shadow: 6px 0 20px rgba(0,0,0,0.12);
+        }
+
+        .sidebar-brand { 
+            height: 60px;
+            padding: 0 18px; 
+            font-size: 1.1rem; 
+            font-weight: bold; 
+            color: #1a365d; 
+            display: flex; 
+            align-items: center; 
+            gap: 15px; 
+            border-bottom: 1px solid #f0f4f8; 
+        }
+        .sidebar-brand i { font-size: 1.3rem; min-width: 28px; text-align: center; }
+
+        .nav-menu { list-style: none; padding: 15px 8px; overflow-y: auto; overflow-x: hidden; flex: 1; }
+        .nav-item { margin-bottom: 4px; }
+        
+        .nav-link { 
+            display: flex; 
+            align-items: center; 
+            gap: 15px; 
+            padding: 11px 12px; 
+            text-decoration: none; 
+            color: #4a5568; 
+            font-size: 0.9rem; 
+            font-weight: 500; 
+            border-radius: 8px; 
+            transition: all 0.2s ease; 
+        }
+
+        .nav-link:hover, .nav-link.active { background-color: #ebf8ff; color: #2b6cb0; font-weight: 600; }
+        .nav-link i { font-size: 1.15rem; min-width: 26px; text-align: center; }
+
+        .sidebar span {
+            opacity: 0;
+            white-space: nowrap;
+            transition: opacity 0.2s ease;
+        }
+        .sidebar:hover span {
+            opacity: 1;
+        }
+
+        /* Main Content Wrapper */
+        .main-wrapper { flex: 1; margin-left: 65px; display: flex; flex-direction: column; overflow-y: auto; height: 100vh; }
+
+        /* Top Header Navigation */
+        .top-header { height: 60px; background: #ffffff; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; padding: 0 25px; flex-shrink: 0; }
+        .search-bar { position: relative; width: 350px; }
+        .search-bar input { width: 100%; padding: 8px 12px 8px 36px; border: 1px solid #e2e8f0; border-radius: 20px; background: #f8fafc; font-size: 0.88rem; outline: none; }
+        .search-bar i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #a0aec0; }
+        
+        /* Dashboard Body Content */
+        .content-area { padding: 25px; flex: 1; }
+        .page-title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .page-title { font-size: 1.5rem; font-weight: 700; color: #1a202c; }
+
+        .section-box { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+        .section-header { font-size: 1rem; font-weight: 700; color: #2d3748; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+
+        /* Action Cards Hover Style */
+        .action-card {
+            text-decoration: none; color: inherit; background: #f8fafc; padding: 14px 18px; border-radius: 10px; border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 14px; transition: all 0.2s ease;
+        }
+        .action-card:hover {
+            background: #ffffff; box-shadow: 0 4px 12px rgba(0,0,0,0.06); border-color: #cbd5e0; transform: translateY(-1px);
+        }
+
+        /* Metrics Row */
+        .metrics-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 20px; }
+        .metric-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px 12px; text-align: center; }
+        .metric-title { font-size: 0.78rem; font-weight: 600; color: #718096; text-transform: uppercase; margin-bottom: 5px; }
+        .metric-value { font-size: 1.4rem; font-weight: bold; color: #2d3748; }
+
+        /* Data Table */
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; }
+        th { background: #f8fafc; padding: 12px 15px; border-bottom: 2px solid #edf2f7; color: #718096; font-weight: 600; }
+        td { padding: 14px 15px; border-bottom: 1px solid #edf2f7; color: #2d3748; }
+        tr:hover { background-color: #f8fafc; }
+
+        .btn-primary { background: #3182ce; color: white; padding: 9px 16px; border: none; border-radius: 6px; font-weight: 600; font-size: 0.88rem; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+        .badge-status { padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; }
+        .badge-present { background: #c6f6d5; color: #22543d; }
+    </style>
+</head>
+<body>
+
+    <!-- 1. Left Sidebar Navigation -->
+    <div class="sidebar">
+        <div>
+            <div class="sidebar-brand">
+                <i class="fa-solid fa-hospital-user" style="color: #3182ce;"></i>
+                <span>Radha HIMS</span>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="/hr" class="nav-link active">
+                        <i class="fa-solid fa-chart-pie"></i> <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/hr/add-staff" class="nav-link">
+                        <i class="fa-solid fa-users"></i> <span>Staff</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/hr/approve-punches" class="nav-link">
+                        <i class="fa-solid fa-user-check"></i> <span>Attendance</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fa-solid fa-calendar-days"></i> <span>Roster</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fa-solid fa-location-dot"></i> <span>Geo</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fa-solid fa-clipboard-check"></i> <span>Taskman</span> <span class="badge-status badge-present" style="font-size: 0.65rem; padding: 2px 6px; margin-left: auto;">New</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fa-solid fa-chart-column"></i> <span>Reports</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fa-solid fa-credit-card"></i> <span>Payments</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fa-solid fa-hand-holding-dollar"></i> <span>Payroll</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fa-solid fa-cubes"></i> <span>Others</span>
+                    </a>
+                </li>
+                <li class="nav-item" style="border-top: 1px solid #edf2f7; margin-top: 10px; padding-top: 10px;">
+                    <a href="#" class="nav-link">
+                        <i class="fa-solid fa-circle-question"></i> <span>Help</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fa-solid fa-gear"></i> <span>Settings</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/" class="nav-link" style="color: #e53e3e;">
+                        <i class="fa-solid fa-right-from-bracket"></i> <span>Exit Portal</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <div style="padding: 15px; font-size: 0.75rem; color: #a0aec0; border-top: 1px solid #edf2f7;">
+            <span>Radha HIMS Enterprise v2.0</span>
+        </div>
+    </div>
+
+    <!-- 2. Main Content Wrapper -->
+    <div class="main-wrapper">
+        <div class="top-header">
+            <div class="search-bar">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="staffSearchInput" onkeyup="filterStaffTable()" placeholder="Search staff by name or code... (Ctrl+K)">
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span id="loggedInUserName" style="font-weight: 600; color: #2d3748; font-size: 0.95rem;">System Admin</span>
+                <div id="userAvatarBadge" style="width: 38px; height: 38px; border-radius: 50%; background: #3182ce; color: white; font-weight: bold; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; border: 2px solid #ebf8ff;">SA</div>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <div class="page-title-row">
+                <h1 class="page-title">HR Dashboard</h1>
+                <a href="/hr/add-staff" class="btn-primary">
+                    <i class="fa-solid fa-user-plus"></i> Add New Staff
+                </a>
+            </div>
+
+            <!-- 1. Things to Do Section (Approve Punches Dynamic Days Fixed) -->
+            <div class="section-box">
+                <div class="section-header"><i class="fa-solid fa-list-check" style="color: #3182ce;"></i> Things to do</div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-top: 10px;">
+                    
+                    <!-- Card 1: Approve Punches (Dynamic Days Status) -->
+                    <a href="/hr/approve-punches" class="action-card">
+                        <i class="fa-solid fa-fingerprint" style="font-size: 26px; color: #3182ce;"></i>
+                        <div>
+                            <strong style="display: block; font-size: 14px; color: #1a202c;">Approve Punches</strong>
+                            <small style="color: #718096; font-size: 13px;" id="pendingDaysText">0 days pending</small>
+                        </div>
+                    </a>
+
+                    <!-- Card 2: Celebrations -->
+                    <a href="/hr/celebrations" class="action-card">
+                        <i class="fa-solid fa-cake-candles" style="font-size: 26px; color: #d69e2e;"></i>
+                        <div>
+                            <strong style="display: block; font-size: 14px; color: #1a202c;">Celebrations</strong>
+                            <small style="color: #718096; font-size: 13px;" id="celebrationsText">No celebrations</small>
+                        </div>
+                    </a>
+
+                    <!-- Card 3: New Joinees -->
+                    <a href="/hr/add-staff" class="action-card">
+                        <i class="fa-solid fa-user-plus" style="font-size: 26px; color: #38a169;"></i>
+                        <div>
+                            <strong style="display: block; font-size: 14px; color: #1a202c;">New Joinees</strong>
+                            <small style="color: #38a169; font-weight: bold; font-size: 13px;">+ Add New Staff</small>
+                        </div>
+                    </a>
+
+                </div>
+            </div>
+
+            <!-- 2. Attendance Metrics Grid -->
+            <div class="section-box">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div class="section-header" style="margin: 0;"><i class="fa-solid fa-chart-line" style="color: #3182ce;"></i> Attendance Metrics</div>
+                    <input type="date" style="padding: 4px 8px; border-radius: 6px; border: 1px solid #cbd5e0; font-size: 13px;">
+                </div>
+                <div class="metrics-grid">
+                    <div class="metric-card"><div class="metric-title">Present</div><div class="metric-value" style="color: #38a169;">0</div></div>
+                    <div class="metric-card"><div class="metric-title">Absent</div><div class="metric-value" style="color: #e53e3e;">0</div></div>
+                    <div class="metric-card"><div class="metric-title">Half Day</div><div class="metric-value" style="color: #d69e2e;">0</div></div>
+                    <div class="metric-card"><div class="metric-title">Punched In</div><div class="metric-value" style="color: #3182ce;">0</div></div>
+                    <div class="metric-card"><div class="metric-title">Punched Out</div><div class="metric-value" style="color: #718096;">0</div></div>
+                    <div class="metric-card"><div class="metric-title">Not Marked</div><div class="metric-value">0</div></div>
+                </div>
+            </div>
+
+            <!-- 3. Staff Members List Table -->
+            <div class="section-box">
+                <div class="section-header"><i class="fa-solid fa-address-book" style="color: #3182ce;"></i> Staff Members List</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Emp Code</th>
+                            <th>Staff Name</th>
+                            <th>Department</th>
+                            <th>Designation</th>
+                            <th>Gross Salary</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="empTableBody">
+                        <tr><td colspan="6" style="text-align: center;">Loading Staff Members...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Execution -->
+    <script>
+    const HR_API = `${window.location.origin}/api/hr`;
+
+    // 1. Fetch Staff Members from Database
+    async function loadEmployees() {
+        try {
+            const response = await fetch(`${HR_API}/employees`);
+            const data = await response.json();
+            const tbody = document.getElementById('empTableBody');
+
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            if (data.employees && data.employees.length > 0) {
+                data.employees.forEach(emp => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><b>${emp.emp_code}</b></td>
+                            <td>${emp.emp_name}</td>
+                            <td>${emp.department}</td>
+                            <td>${emp.designation || 'Staff'}</td>
+                            <td>₹${(emp.salary || 0).toLocaleString('en-IN')}</td>
+                            <td><span class="badge-status badge-present">Active</span></td>
+                        </tr>
+                    `;
+                });
+            } else {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center;">No employee records found in database.</td></tr>`;
+            }
+        } catch (error) {
+            console.error('Error fetching employees:', error);
+        }
+    }
+
+    // 2. Fetch Real-time Pending Approvals Count & Celebrations Count from DB
+    async function loadDashboardCounts() {
+        try {
+            // Fetch Pending Approvals Count
+            const resPunches = await fetch(`${HR_API}/pending-approvals`);
+            const dataPunches = await resPunches.json();
+            const pendingElem = document.getElementById('pendingDaysText');
+            if (pendingElem && dataPunches.data) {
+                const count = dataPunches.data.length;
+                pendingElem.innerText = count > 0 ? `${count} days pending` : '0 days pending';
+            }
+
+            // Fetch Celebrations Count
+            const resCeleb = await fetch(`${HR_API}/celebrations?type=birthdays`);
+            const dataCeleb = await resCeleb.json();
+            const celebElem = document.getElementById('celebrationsText');
+            if (celebElem && dataCeleb.data) {
+                const count = dataCeleb.data.length;
+                celebElem.innerText = count > 0 ? `${count} celebrations` : 'No celebrations';
+            }
+        } catch (err) {
+            console.error("Dashboard counts fetch error:", err);
+        }
+    }
+
+    // 3. Real-Time Table Filter Function
+    function filterStaffTable() {
+        const input = document.getElementById('staffSearchInput');
+        if (!input) return;
+
+        const filter = input.value.toLowerCase().trim();
+        const tbody = document.getElementById('empTableBody');
+        if (!tbody) return;
+
+        const rows = tbody.getElementsByTagName('tr');
+
+        for (let i = 0; i < rows.length; i++) {
+            const empCodeTd = rows[i].getElementsByTagName('td')[0];
+            const empNameTd = rows[i].getElementsByTagName('td')[1];
+            const deptTd = rows[i].getElementsByTagName('td')[2];
+
+            if (empCodeTd || empNameTd || deptTd) {
+                const codeText = empCodeTd ? (empCodeTd.textContent || empCodeTd.innerText) : '';
+                const nameText = empNameTd ? (empNameTd.textContent || empNameTd.innerText) : '';
+                const deptText = deptTd ? (deptTd.textContent || deptTd.innerText) : '';
+
+                if (
+                    codeText.toLowerCase().indexOf(filter) > -1 ||
+                    nameText.toLowerCase().indexOf(filter) > -1 ||
+                    deptText.toLowerCase().indexOf(filter) > -1
+                ) {
+                    rows[i].style.display = "";
+                } else {
+                    rows[i].style.display = "none";
+                }
+            }
+        }
+    }
+
+    // 4. Ctrl + K Shortcut
+    window.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
+            e.preventDefault();
+            const searchInput = document.getElementById('staffSearchInput');
+            if (searchInput) {
+                searchInput.focus();
+                searchInput.select();
+            }
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadEmployees();
+        loadDashboardCounts();
+    });
+</script>
+</body>
+</html>

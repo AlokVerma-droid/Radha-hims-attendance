@@ -1,0 +1,14 @@
+{
+    "server": "RADHEY\\SQLEXPRESS",
+    "database": "Radha_Attendance",
+    "users": {
+        "RadhaUser": {
+            "user_id": "RadhaUser",
+            "password": "UmFkaGFAMTIz"
+        },
+        "AlokUser": {
+            "user_id": "AlokUser",
+            "password": "QWxva0AxMjM="
+        }
+    }
+}
