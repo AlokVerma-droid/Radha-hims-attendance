@@ -1,0 +1,6 @@
+flask
+gunicorn
+numpy
+opencv-python
+pyodbc
+requests
